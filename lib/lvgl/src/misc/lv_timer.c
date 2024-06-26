@@ -309,8 +309,8 @@ static bool lv_timer_exec(lv_timer_t * timer)
         int32_t original_repeat_count = timer->repeat_count;
         if(timer->repeat_count > 0) timer->repeat_count--;
         timer->last_run = lv_tick_get();
-        printf("calling timer callback: %p\n", *((void **)&timer->timer_cb));
-        //TIMER_TRACE("calling timer callback: %p", *((void **)&timer->timer_cb));
+        //printf("calling timer callback: %p\n", *((void **)&timer->timer_cb)); // JMH ADD
+        TIMER_TRACE("calling timer callback: %p", *((void **)&timer->timer_cb));
         if(timer->timer_cb && original_repeat_count != 0) timer->timer_cb(timer);
         TIMER_TRACE("timer callback %p finished", *((void **)&timer->timer_cb));
         LV_ASSERT_MEM_INTEGRITY();

@@ -53,9 +53,9 @@ esp_err_t esp_lcd_touch_exit_sleep(esp_lcd_touch_handle_t tp)
 esp_err_t esp_lcd_touch_read_data(esp_lcd_touch_handle_t tp)
 {
     assert(tp != NULL);
-    printf("JMH2 esp_lcd_touch_read_data tp: %d\n", (int)tp);
+    //printf("JMH2 esp_lcd_touch_read_data tp: %d\n", (int)tp);
     assert(tp->read_data != NULL);
-    printf("JMH2 tp->read_data != NULL\n");
+    //printf("JMH2 tp->read_data != NULL\n");
     return tp->read_data(tp); //method found in ??.
 }
 

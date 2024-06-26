@@ -178,20 +178,20 @@ bool ESP_PanelTouch::readRawData(uint8_t max_points_num, int timeout_ms)
         ESP_LOGD(TAG, "Touch panel @%p touched (%d, %d, %d)", handle, _tp_points[i].x, _tp_points[i].y,
                  _tp_points[i].strength);
     }
-    printf("JMH1 Complete\n");
+    //printf("JMH1 Complete\n");
     return true;
 }
 
 int ESP_PanelTouch::getPoints(ESP_PanelTouchPoint points[], uint8_t num)
 {
-    printf("ESP_PanelTouch::getPoints-start\n");
+    //printf("ESP_PanelTouch::getPoints-start\n"); //JMH ADD
     ESP_PANEL_CHECK_FALSE_RET((num == 0) || (points != NULL), -1, "Invalid points or num");
 
     int i = 0;
     for (; (i < num) && (i < _tp_points_num); i++) {
         points[i] = _tp_points[i];
     }
-    printf("ESP_PanelTouch::getPoints-done\n");
+    //printf("ESP_PanelTouch::getPoints-done\n"); //JMH ADD
     return i;
 }
 
@@ -205,9 +205,9 @@ int ESP_PanelTouch::getButtonState(uint8_t n)
 
 int ESP_PanelTouch::readPoints(ESP_PanelTouchPoint points[], uint8_t num, int timeout_ms)
 {
-    printf("ESP_PanelTouch::readPoints()- start\n");
+    //printf("ESP_PanelTouch::readPoints()- start\n"); //JMH ADD
     ESP_PANEL_CHECK_FALSE_RET(readRawData(num, timeout_ms), -1, "Points: Read raw data failed");//->ESP_PanelTouch::readRawData()
-    printf("ESP_PanelTouch::readPoints()- done\n");
+    //printf("ESP_PanelTouch::readPoints()- done\n"); //JMH ADD
     return getPoints(points, num);
 }
 

@@ -1365,7 +1365,7 @@ static void circ_calc_aa4(_lv_draw_mask_radius_circle_dsc_t * c, lv_coord_t radi
 {
     if(radius == 0) return;
     c->radius = radius;
-    printf("JMH5 circ_calc_aa4 c->radius = %d\n", c->radius);
+    //printf("JMH5 circ_calc_aa4 c->radius = %d\n", c->radius); //JMH ADD
     /*Allocate buffers*/
     if(c->buf) lv_mem_free(c->buf);
 

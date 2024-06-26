@@ -518,7 +518,7 @@ static void touchpad_read(lv_indev_drv_t *indev_drv, lv_indev_data_t *data)
 
     /* Read data from touch controller */
     int read_touch_result = tp->readPoints(&point, 1); // ->/lib/ESP32_Display_Panel/src/touch/ESP_PanelTouch.cpp:208
-    printf("lvgl_port_v8 - touchpad_read() %d\n", read_touch_result);
+    //printf("lvgl_port_v8 - touchpad_read() %d\n", read_touch_result); // JMH ADD
     if (read_touch_result > 0) {
         data->point.x = point.x;
         data->point.y = point.y;

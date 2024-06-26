@@ -207,7 +207,7 @@ static esp_err_t esp_lcd_touch_gt911_read_data(esp_lcd_touch_handle_t tp)
     size_t i = 0;
 
     assert(tp != NULL);
-    printf("esp_lcd_touch_gt911_read_data(esp_lcd_touch_handle_t tp)\n");
+    //printf("esp_lcd_touch_gt911_read_data(esp_lcd_touch_handle_t tp)\n");//JMH ADD
     err = touch_gt911_i2c_read(tp, ESP_LCD_TOUCH_GT911_READ_XY_REG, buf, 1);//-> found in this same file
     ESP_RETURN_ON_ERROR(err, TAG, "I2C read error!");
     /*JMH attempt to fix reset master bus index*/
