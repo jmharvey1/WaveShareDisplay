@@ -1,0 +1,25 @@
+{
+	"folders": [
+		{
+			"name": "WaveShareDisplay",
+			"path": ".."
+		}
+	],
+	"settings": {
+		"files.associations": {
+			"memory": "cpp",
+			"esp_heap_caps.h": "c",
+			"semphr.h": "c",
+			"esp32-hal-spi.h": "c",
+			"i2c.h": "c",
+			"lvgl.h": "c",
+			"lv_examples.h": "c",
+			"lv_example_get_started.h": "c",
+			"spi.h": "c",
+			"typeinfo": "cpp",
+			"gpio_hal.h": "c",
+			"esp_lcd_touch_gt911.h": "c",
+			"i2c_master.h": "c"
+		}
+	}
+}
