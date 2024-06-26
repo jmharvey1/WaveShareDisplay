@@ -10,7 +10,8 @@ In its current state, it runs on my setup. But I have modified at least one of t
 The main focus of this effort is to create a set of source code files that can be used with the IDE configuration described above. 
 The code contained in this repository comes primarily from the code found at the Waveshare Wiki site, for this board. And is assumed to be ‘open source’ code.
 The main reason for the creation of this repository is, the code found, at the wiki site, was written around what espressif now calls ‘legacy I2C drivers’. 
-Using the 5.2 framework to compile the wiki source code creates a binary the will flash, but wont run, because the resulting .bin file contains references to both the legacy & current I2C drivers.      
+Using the 5.2 framework to compile the wiki source code creates a binary the will flash, but wont run, because the resulting .bin file contains references to both the legacy & current I2C drivers.     
+
 
 
     
