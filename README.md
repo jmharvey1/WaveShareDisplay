@@ -6,7 +6,10 @@ ESP32-S3 7inch Capacitive Touch Display Development Board, ESP32 With Display, 8
 ___
 
 This is VS Code/PlatformIO project, Using framework-espidf @ 3.50201.240515 (5.2.1). For the Waveshare ESP32S3-Touch-LCD-7 development board.
-In its current state, it runs on my setup. But I have modified at least one of the ESPIDF component files. Namely, the .platformio/packages/framework-espidf/components/driver/i2c/i2c_master.c file.
+In its current state, it runs on my setup. But I have modified at least one of the ESPIDF component files. Namely, the .platformio/packages/framework-espidf/components/driver/i2c/i2c_master.c file was modified by adding the folowing entry:
+ESP_RETURN_ON_ERROR(s_i2c_asynchronous_transaction(i2c_dev, i2c_ops, DIM(i2c_ops), xfer_timeout_ms), TAG, "I2C transaction failed");
+        /*JMH ADD2*/
+        vTaskDelay(1); //adding this here stopped unexplained crashes
 The main focus of this effort is to create a set of source code files that can be used with the IDE configuration described above. 
 The code contained in this repository comes primarily from the code found at the Waveshare Wiki site, for this board. And is assumed to be ‘open source’ code.
 The main reason, for the creation of this repository is the code found, at the wiki site, was written around what espressif now calls ‘legacy I2C drivers’. 

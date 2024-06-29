@@ -61,7 +61,7 @@ static esp_err_t touch_gt911_read_cfg(esp_lcd_touch_handle_t tp);
 /* GT911 enter/exit sleep mode */
 static esp_err_t esp_lcd_touch_gt911_enter_sleep(esp_lcd_touch_handle_t tp);
 static esp_err_t esp_lcd_touch_gt911_exit_sleep(esp_lcd_touch_handle_t tp);
- //JMH ADDED to support __container call
+ //JMH ADDED to support __container call - Did not work. So is not used
 typedef struct {
     esp_lcd_panel_io_t base; // Base class of generic lcd panel io
     i2c_master_dev_handle_t i2c_handle; // I2C master driver handle.
