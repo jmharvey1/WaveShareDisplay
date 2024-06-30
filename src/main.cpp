@@ -1,9 +1,9 @@
 /** JMH 20240626
- * This code is an adaptation of the rgb_lcd_example_main.c found in the
+ * This code/file is an adaptation of the rgb_lcd_example_main.c found in the
  * ESP32-S3-Touch-LCD-7_Code.zip file @
  * /ESP32-S3-Touch-LCD-7_Code/ESP-IDF-5.3.0/lvgl_Porting/main/
  * The main idea behind this example is to strip the "setup" down to just the basics
- * needed to get the Waveshare display running on ESPIDF 5.2.1 using the lvlg 8.3.8
+ * needed to get the Waveshare display (ST7262 & GT911)running on ESPIDF 5.2.1 using the lvlg 8.3.8
  * library
  * note: in lv_conf.h set #define LV_TICK_CUSTOM 0
  */
@@ -458,8 +458,8 @@ void app_main(void)
     lvgl_semaphore = xSemaphoreCreateMutex();
     ESP_LOGI(TAG, "Initialize LVGL library");
     lv_init();
-    void *buf1 = NULL;
-    void *buf2 = NULL;
+    void *buf1 = NULL;// will be used by lvgl as a staging area (memory space) to create display images/maps before posting to display ST7262
+    void *buf2 = NULL;// same as above, is the 2nd of two buffer spaces
 #if CONFIG_EXAMPLE_DOUBLE_FB
     ESP_LOGI(TAG, "Use frame buffers as LVGL draw buffers");
     ESP_ERROR_CHECK(esp_lcd_rgb_panel_get_frame_buffer(display_handle, 2, &buf1, &buf2));
@@ -470,8 +470,7 @@ void app_main(void)
     int buffer_size = (LVGL_PORT_DISP_WIDTH) * (LVGL_PORT_DISP_HEIGHT);
     /*JMH commented out & replaced w/ the following: */
     // buf1 = heap_caps_malloc(EXAMPLE_LCD_H_RES * 100 * sizeof(lv_color_t), MALLOC_CAP_SPIRAM);
-    // assert(buf1);
-
+    
     // Why using the below line, instead of the above, check the below link
     // https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/system/mem_alloc.html
     buf1 = heap_caps_malloc(buffer_size * sizeof(lv_color_t), MALLOC_CAP_SPIRAM); //MALLOC_CAP_DMA
@@ -495,7 +494,10 @@ void app_main(void)
     disp_drv.full_refresh = true; // the full_refresh mode can maintain the synchronization between the two frame buffers
 #endif
     lv_disp_t *disp = lv_disp_drv_register(&disp_drv);
-    /*JMH commented out*/
+    
+    disp_drv.full_refresh = true; // the full_refresh mode can maintain the synchronization between the two frame buffers
+
+
     ESP_LOGI(TAG, "Install LVGL tick timer");
     // Tick Interface for LVGL using esp_timer to generate 2ms periodic event
   const esp_timer_create_args_t lvgl_tick_timer_args =
@@ -507,20 +509,18 @@ void app_main(void)
   esp_timer_handle_t lvgl_tick_timer;
   ESP_ERROR_CHECK(esp_timer_create(&lvgl_tick_timer_args, &lvgl_tick_timer));
   ESP_ERROR_CHECK(esp_timer_start_periodic(lvgl_tick_timer, LV_TICK_PERIOD_MS * 1000));  // here time is in micro seconds
+// Tick Interface for LVGL using esp_timer to generate 2ms periodic event
 
     static lv_indev_drv_t indev_drv; // Input device driver (Touch)
     lv_indev_drv_init(&indev_drv);
+    /*Set project/application specific parameters*/
     indev_drv.type = LV_INDEV_TYPE_POINTER;
     indev_drv.disp = disp;
     indev_drv.read_cb = example_lvgl_touch_cb;
     indev_drv.user_data = tp;
 
     lv_indev_drv_register(&indev_drv);
-    /*JMH commented out*/
-    // esp_timer_handle_t lvgl_tick_timer = NULL;
-    // ESP_ERROR_CHECK(esp_timer_create(&lvgl_tick_timer_args, &lvgl_tick_timer));
-    // ESP_ERROR_CHECK(esp_timer_start_periodic(lvgl_tick_timer, EXAMPLE_LVGL_TICK_PERIOD_MS * 1000));
-    // Tick Interface for LVGL using esp_timer to generate 2ms periodic event
+   
 
     lvgl_mux = xSemaphoreCreateRecursiveMutex();
     assert(lvgl_mux);
@@ -541,10 +541,12 @@ void app_main(void)
         // Release the mutex
         example_lvgl_unlock();
     }
-    /*Set to '1' if you want to keep doing some other activity*/
+    
     static const char *TAG = "lvgl_flush_cb";
-    while (1)
+    /*Set to '1' if you want to keep doing some other activity*/
+    while (0)
     {
+        /*A way to show what buffer setting were in play during last 'flush' event*/
         if (FlushFired)
         {
             FlushFired = false;
