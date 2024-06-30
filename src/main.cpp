@@ -5,10 +5,11 @@
  * The main idea behind this example is to strip the "setup" down to just the basics
  * needed to get the Waveshare display running on ESPIDF 5.2.1 using the lvlg 8.3.8
  * library
+ * note: in lv_conf.h set #define LV_TICK_CUSTOM 0
  */
 
 #include <lvgl.h>
-#include <lv_conf.h>
+#include "lv_conf.h"
 #include <lvgl_port_v8.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -23,15 +24,17 @@
 #include "esp_lcd_panel_ops.h"
 #include "esp_lcd_panel_rgb.h"
 #include "driver/gpio.h"
-#include "esp_err.h"
 #include "esp_log.h"
+#include "esp_err.h"
+#include "esp_check.h"
 #include "lvgl.h"
 #include "hal/lv_hal_tick.h"
 #include "demos/lv_demos.h"
-
 // #include "driver/i2c.h"
 #include "driver/i2c_master.h"
 #include "touch/base/esp_lcd_touch_gt911.h"
+
+#define LV_TICK_PERIOD_MS           (2)
 
 #define CONFIG_EXAMPLE_AVOID_TEAR_EFFECT_WITH_SEM 1
 
@@ -87,10 +90,16 @@ static const char *TAG = "example";
 
 using namespace std;
 static SemaphoreHandle_t lvgl_mux = NULL;
+SemaphoreHandle_t lvgl_semaphore;
 /*JMH ADD: next 2 lines*/
 i2c_master_bus_handle_t i2c_master_bus_handle = nullptr;
 i2c_master_dev_handle_t dev_handle = NULL;
-
+/*JMH Added/moved to support reporting/logging flush callback values*/
+int offsetx1 = 0;
+int offsetx2 = 0;
+int offsety1 = 0;
+int offsety2 = 0;
+bool FlushFired = false;
 // we use two semaphores to sync the VSYNC event and the LVGL task, to avoid potential tearing effect
 #if CONFIG_EXAMPLE_AVOID_TEAR_EFFECT_WITH_SEM
 SemaphoreHandle_t sem_vsync_end;
@@ -116,7 +125,7 @@ esp_lcd_touch_config_t lcd_touch_config = {
     .interrupt_callback = NULL,
     .user_data = NULL,
 };
-
+static void lvgl_tick(void *arg);
 extern void example_lvgl_demo_ui(lv_disp_t *disp);
 extern "C"
 {
@@ -129,7 +138,11 @@ bool example_lvgl_lock(int timeout_ms)
     // Convert timeout in milliseconds to FreeRTOS ticks
     // If `timeout_ms` is set to -1, the program will block until the condition is met
     const TickType_t timeout_ticks = (timeout_ms == -1) ? portMAX_DELAY : pdMS_TO_TICKS(timeout_ms);
+    
+		/* We were able to obtain the semaphore and can now access the
+		shared resource. */    
     return xSemaphoreTakeRecursive(lvgl_mux, timeout_ticks) == pdTRUE;
+    
 }
 
 void example_lvgl_unlock(void)
@@ -148,23 +161,45 @@ static bool example_on_vsync_event(esp_lcd_panel_handle_t panel, const esp_lcd_r
 #endif
     return high_task_awoken == pdTRUE;
 }
-
+void set_pixel(int x, int y, lv_color_t *color_p)
+{
+    ;
+}
 static void example_lvgl_flush_cb(lv_disp_drv_t *drv, const lv_area_t *area, lv_color_t *color_map)
 {
-
     esp_lcd_panel_handle_t display_handle = (esp_lcd_panel_handle_t)drv->user_data;
-    int offsetx1 = area->x1;
-    int offsetx2 = area->x2;
-    int offsety1 = area->y1;
-    int offsety2 = area->y2;
-#if CONFIG_EXAMPLE_AVOID_TEAR_EFFECT_WITH_SEM
-    xSemaphoreGive(sem_gui_ready);
-    xSemaphoreTake(sem_vsync_end, portMAX_DELAY);
-#endif
-    // pass the draw buffer to the driver
+    // int offsetx1 = area->x1;
+    // int offsetx2 = area->x2;
+    // int offsety1 = area->y1;
+    // int offsety2 = area->y2;
+    offsetx1 = area->x1;
+    offsetx2 = area->x2;
+    offsety1 = area->y1;
+    offsety2 = area->y2;
+    //BaseType_t high_task_awoken = pdFALSE;
+    /**
+     * @brief Draw bitmap on LCD panel
+     *
+     * @param[in] panel LCD panel handle, which is created by other factory API like `esp_lcd_new_panel_st7789()`
+     * @param[in] x_start Start index on x-axis (x_start included)
+     * @param[in] y_start Start index on y-axis (y_start included)
+     * @param[in] x_end End index on x-axis (x_end not included)
+     * @param[in] y_end End index on y-axis (y_end not included)
+     * @param[in] color_data RGB color data that will be dumped to the specific window range
+     * @return
+     *          - ESP_OK on success
+     */
+    // bool drawBitmap(uint16_t x_start, uint16_t y_start, uint16_t width, uint16_t height, const uint8_t *color_data);
     esp_lcd_panel_draw_bitmap(display_handle, offsetx1, offsety1, offsetx2 + 1, offsety2 + 1, color_map);
-    //esp_lcd_panel_draw_bitmap(display_handle, offsetx1, offsety1, offsetx2, offsety2, color_map);
+        
+    // pass the draw buffer to the driver
     lv_disp_flush_ready(drv);
+    FlushFired = true;
+
+    // #if CONFIG_EXAMPLE_AVOID_TEAR_EFFECT_WITH_SEM
+    //     xSemaphoreGive(sem_gui_ready);
+    //     xSemaphoreTake(sem_vsync_end, portMAX_DELAY);
+    // #endif
 }
 
 // extern lv_obj_t *scr;
@@ -195,7 +230,10 @@ static void example_lvgl_touch_cb(lv_indev_drv_t *drv, lv_indev_data_t *data)
         data->state = LV_INDEV_STATE_REL;
     }
 }
-/*JMH commented out*/
+/*JMH commented out not needed. Covered in lv_conf.h see: #define LV_TICK_CUSTOM 1*/
+/*Use a custom tick source that tells the elapsed time in milliseconds.
+ *It removes the need to manually update the tick with `lv_tick_inc()`)*/
+//#define LV_TICK_CUSTOM 1
 // static void example_increase_lvgl_tick(void *arg)
 // {
 //     /* Tell LVGL how many milliseconds has elapsed */
@@ -209,12 +247,19 @@ static void example_lvgl_port_task(void *arg)
     uint32_t task_delay_ms = EXAMPLE_LVGL_TASK_MAX_DELAY_MS;
     while (1)
     {
-        // Lock the mutex due to the LVGL APIs are not thread-safe
-        if (example_lvgl_lock(-1))
+        vTaskDelay(pdMS_TO_TICKS(task_delay_ms));
+        if (pdTRUE == xSemaphoreTake(lvgl_semaphore, portMAX_DELAY))
         {
-            task_delay_ms = lv_timer_handler();
-            // Release the mutex
-            example_lvgl_unlock();
+            // Lock the mutex due to the LVGL APIs are not thread-safe
+            if (example_lvgl_lock(-1))
+            {
+                // printf("example_lvgl_port_task\n");
+                task_delay_ms = lv_timer_handler();
+                // printf("example_lvgl_port_task delay = %d\n", (int)task_delay_ms);
+                //  Release the mutex
+                example_lvgl_unlock();
+            }
+            xSemaphoreGive(lvgl_semaphore);
         }
         if (task_delay_ms > EXAMPLE_LVGL_TASK_MAX_DELAY_MS)
         {
@@ -224,7 +269,7 @@ static void example_lvgl_port_task(void *arg)
         {
             task_delay_ms = EXAMPLE_LVGL_TASK_MIN_DELAY_MS;
         }
-        vTaskDelay(pdMS_TO_TICKS(task_delay_ms));
+        
     }
 }
 
@@ -279,6 +324,12 @@ void app_main(void)
 {
     static lv_disp_draw_buf_t disp_buf; // contains internal graphic buffer(s) called draw buffer(s)
     static lv_disp_drv_t disp_drv;      // contains callback functions
+    esp_log_level_set("*", ESP_LOG_VERBOSE);  //ESP_LOG_NONE,       /*!< No log output */
+                                    //ESP_LOG_ERROR,      /*!< Critical errors, software module can not recover on its own */
+                                    //ESP_LOG_WARN,       /*!< Error conditions from which recovery measures have been taken */
+                                    //ESP_LOG_INFO,       /*!< Information messages which describe normal flow of events */
+                                    //ESP_LOG_DEBUG,      /*!< Extra information which is not necessary for normal use (values, pointers, sizes, etc). */
+                                    //ESP_LOG_VERBOSE     /*!< Bigger chunks of debugging information, or frequent messages which can potentially flood the output. */
 
 #if CONFIG_EXAMPLE_AVOID_TEAR_EFFECT_WITH_SEM
     ESP_LOGI(TAG, "Create semaphores");
@@ -312,13 +363,17 @@ void app_main(void)
             .vsync_back_porch = 8,
             .vsync_front_porch = 8,
             .flags = {
+                .hsync_idle_low = 0,
+                .vsync_idle_low = 0,
+                .de_idle_high = 0,
                 .pclk_active_neg = 0,
+                .pclk_idle_high = 0,
             },
         },
-        .data_width = 16,           // 8 | 16
-        .bits_per_pixel = 16,       // 24 | 16
-        .num_fbs = 1,               // 1/2/3
-        .bounce_buffer_size_px = 0, // Bounce buffer size in bytes. This function is used to avoid screen drift.
+        .data_width = 16,                                  // 8 | 16
+        .bits_per_pixel = 16,                              // 24 | 16
+        .num_fbs = 1,                                      // 1/2/3
+        .bounce_buffer_size_px = (EXAMPLE_LCD_H_RES * 10), // Bounce buffer size in bytes. This function is used to avoid screen drift.
         .sram_trans_align = 4,
         .psram_trans_align = 64,
         .hsync_gpio_num = EXAMPLE_PIN_NUM_HSYNC,
@@ -345,7 +400,12 @@ void app_main(void)
             EXAMPLE_PIN_NUM_DATA15,
         },
         .flags = {
+            .disp_active_low = 0,
+            .refresh_on_demand = 0,
             .fb_in_psram = 1,
+            .double_fb = 0,
+            .no_fb = 0,
+            .bb_invalidate_cache = 0,
         },
     };
     /*Register display & get a pointer/handle to it*/
@@ -395,6 +455,7 @@ void app_main(void)
     ESP_LOGI(TAG, "Initialize/configure GT911 touch controller");
     // ESP_ERROR_CHECK(esp_lcd_touch_new_i2c_gt911(tp_io_handle, &tp_cfg, &tp));//
     ESP_ERROR_CHECK(esp_lcd_touch_new_i2c_gt911(tp_io_handle, &lcd_touch_config, &tp));
+    lvgl_semaphore = xSemaphoreCreateMutex();
     ESP_LOGI(TAG, "Initialize LVGL library");
     lv_init();
     void *buf1 = NULL;
@@ -406,10 +467,21 @@ void app_main(void)
     lv_disp_draw_buf_init(&disp_buf, buf1, buf2, EXAMPLE_LCD_H_RES * EXAMPLE_LCD_V_RES);
 #else
     ESP_LOGI(TAG, "Allocate separate LVGL draw buffers from PSRAM");
-    buf1 = heap_caps_malloc(EXAMPLE_LCD_H_RES * 100 * sizeof(lv_color_t), MALLOC_CAP_SPIRAM);
+    int buffer_size = (LVGL_PORT_DISP_WIDTH) * (LVGL_PORT_DISP_HEIGHT);
+    /*JMH commented out & replaced w/ the following: */
+    // buf1 = heap_caps_malloc(EXAMPLE_LCD_H_RES * 100 * sizeof(lv_color_t), MALLOC_CAP_SPIRAM);
+    // assert(buf1);
+
+    // Why using the below line, instead of the above, check the below link
+    // https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/system/mem_alloc.html
+    buf1 = heap_caps_malloc(buffer_size * sizeof(lv_color_t), MALLOC_CAP_SPIRAM); //MALLOC_CAP_DMA
     assert(buf1);
+    buf2 = heap_caps_malloc(buffer_size *  sizeof(lv_color_t),  MALLOC_CAP_SPIRAM);//MALLOC_CAP_DMA
+    assert(buf2);
+
+
     // initialize LVGL draw buffers
-    lv_disp_draw_buf_init(&disp_buf, buf1, buf2, EXAMPLE_LCD_H_RES * 100);
+    lv_disp_draw_buf_init(&disp_buf, buf1, buf2, buffer_size); //EXAMPLE_LCD_H_RES * 100
 #endif // CONFIG_EXAMPLE_DOUBLE_FB
 
     ESP_LOGI(TAG, "Register display driver to LVGL");
@@ -424,12 +496,17 @@ void app_main(void)
 #endif
     lv_disp_t *disp = lv_disp_drv_register(&disp_drv);
     /*JMH commented out*/
-    // ESP_LOGI(TAG, "Install LVGL tick timer");
-    // // Tick interface for LVGL (using esp_timer to generate 2ms periodic event)
-    // const esp_timer_create_args_t lvgl_tick_timer_args = {
-    //     .callback = &example_increase_lvgl_tick,
-    //     .name = "lvgl_tick"
-    // };
+    ESP_LOGI(TAG, "Install LVGL tick timer");
+    // Tick Interface for LVGL using esp_timer to generate 2ms periodic event
+  const esp_timer_create_args_t lvgl_tick_timer_args =
+  {
+    .callback = &lvgl_tick,
+    .name = "lvgl_tick",
+    .skip_unhandled_events = true
+  };
+  esp_timer_handle_t lvgl_tick_timer;
+  ESP_ERROR_CHECK(esp_timer_create(&lvgl_tick_timer_args, &lvgl_tick_timer));
+  ESP_ERROR_CHECK(esp_timer_start_periodic(lvgl_tick_timer, LV_TICK_PERIOD_MS * 1000));  // here time is in micro seconds
 
     static lv_indev_drv_t indev_drv; // Input device driver (Touch)
     lv_indev_drv_init(&indev_drv);
@@ -443,10 +520,12 @@ void app_main(void)
     // esp_timer_handle_t lvgl_tick_timer = NULL;
     // ESP_ERROR_CHECK(esp_timer_create(&lvgl_tick_timer_args, &lvgl_tick_timer));
     // ESP_ERROR_CHECK(esp_timer_start_periodic(lvgl_tick_timer, EXAMPLE_LVGL_TICK_PERIOD_MS * 1000));
+    // Tick Interface for LVGL using esp_timer to generate 2ms periodic event
 
     lvgl_mux = xSemaphoreCreateRecursiveMutex();
     assert(lvgl_mux);
     ESP_LOGI(TAG, "Create LVGL task");
+    /* This not only creates the task, but it also starts it*/
     xTaskCreate(example_lvgl_port_task, "LVGL", EXAMPLE_LVGL_TASK_STACK_SIZE, NULL, EXAMPLE_LVGL_TASK_PRIORITY, NULL);
 
     ESP_LOGI(TAG, "Display LVGL Scatter Chart");
@@ -462,14 +541,36 @@ void app_main(void)
         // Release the mutex
         example_lvgl_unlock();
     }
+    /*Set to '1' if you want to keep doing some other activity*/
+    static const char *TAG = "lvgl_flush_cb";
     while (1)
     {
-        //printf("IDLE loop\n");
-        vTaskDelay(250);
+        if (FlushFired)
+        {
+            FlushFired = false;
+            /* uncomment for test/debug */
+            // printf("offsetx1:%d; offsetx2:%d; offsety1:%d; offsety2:%d\n", offsetx1, offsetx2, offsety1, offsety2);
+            //ESP_LOGI(TAG, "offsetx1:%d; offsetx2:%d; offsety1:%d; offsety2:%d\n", offsetx1, offsetx2, offsety1, offsety2);
+        }
+        // printf("Another Process\n");
+        vTaskDelay(pdMS_TO_TICKS(25));
     }
 }
 
 void example_lvgl_demo_ui(lv_disp_t *disp){
     //lv_example_btn_1();
     lv_demo_widgets();
+}
+
+/**
+ * @brief LVGL Tick Function Hook
+ *        LVGL need to call function lv_tick_inc periodically @ LV_TICK_PERIOD_MS
+ *        to keep timing information.
+ * @param arg 
+ */
+static void lvgl_tick(void *arg)
+{
+  (void) arg;
+
+  lv_tick_inc(LV_TICK_PERIOD_MS);
 }

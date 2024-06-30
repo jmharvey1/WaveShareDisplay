@@ -7,7 +7,7 @@
 #include <ESP_Panel_Library.h>
 #include <lvgl.h>
 #include "lvgl_port_v8.h"
-
+#include "esp_timer.h" //JMH ADD
 #define LVGL_PORT_BUFFER_NUM_MAX       (2)
 
 static const char *TAG = "lvgl_port";

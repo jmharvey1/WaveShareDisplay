@@ -8,6 +8,8 @@
  * 
  * The example demonstrates how to port LVGL (v8.3.x). And for RGB LCD, it can enable the avoid tearing fucntion.
  *
+ * important note: in lv_conf.h set #define LV_TICK_CUSTOM 1
+ * 
  * ## How to Use
  *
  * To use this example, please firstly install the following dependent libraries:
@@ -121,7 +123,7 @@ void app_main()
     while(true)
     {   
         printf("IDLE loop\n");
-        vTaskDelay(50);
+        vTaskDelay(pdMS_TO_TICKS(250));
     }
 }
 
