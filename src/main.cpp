@@ -34,7 +34,7 @@
 #include "driver/i2c_master.h"
 #include "touch/base/esp_lcd_touch_gt911.h"
 
-#define LV_TICK_PERIOD_MS           (2)
+#define LV_TICK_PERIOD_MS (2)
 
 #define CONFIG_EXAMPLE_AVOID_TEAR_EFFECT_WITH_SEM 1
 
@@ -132,17 +132,15 @@ extern "C"
     void app_main();
 }
 
-
 bool example_lvgl_lock(int timeout_ms)
 {
     // Convert timeout in milliseconds to FreeRTOS ticks
     // If `timeout_ms` is set to -1, the program will block until the condition is met
     const TickType_t timeout_ticks = (timeout_ms == -1) ? portMAX_DELAY : pdMS_TO_TICKS(timeout_ms);
-    
-		/* We were able to obtain the semaphore and can now access the
-		shared resource. */    
+
+    /* We were able to obtain the semaphore and can now access the
+    shared resource. */
     return xSemaphoreTakeRecursive(lvgl_mux, timeout_ticks) == pdTRUE;
-    
 }
 
 void example_lvgl_unlock(void)
@@ -176,7 +174,7 @@ static void example_lvgl_flush_cb(lv_disp_drv_t *drv, const lv_area_t *area, lv_
     offsetx2 = area->x2;
     offsety1 = area->y1;
     offsety2 = area->y2;
-    //BaseType_t high_task_awoken = pdFALSE;
+    // BaseType_t high_task_awoken = pdFALSE;
     /**
      * @brief Draw bitmap on LCD panel
      *
@@ -191,7 +189,7 @@ static void example_lvgl_flush_cb(lv_disp_drv_t *drv, const lv_area_t *area, lv_
      */
     // bool drawBitmap(uint16_t x_start, uint16_t y_start, uint16_t width, uint16_t height, const uint8_t *color_data);
     esp_lcd_panel_draw_bitmap(display_handle, offsetx1, offsety1, offsetx2 + 1, offsety2 + 1, color_map);
-        
+
     // pass the draw buffer to the driver
     lv_disp_flush_ready(drv);
     FlushFired = true;
@@ -208,21 +206,21 @@ static void example_lvgl_touch_cb(lv_indev_drv_t *drv, lv_indev_data_t *data)
     uint16_t touchpad_x[1] = {0};
     uint16_t touchpad_y[1] = {0};
     uint8_t touchpad_cnt = 0;
-    
+
     /* Read touch controller data */
     esp_lcd_touch_read_data((esp_lcd_touch_handle_t)drv->user_data);
-    
+
     /* Get coordinates */
     bool touchpad_pressed = esp_lcd_touch_get_coordinates((esp_lcd_touch_handle_t)drv->user_data, touchpad_x, touchpad_y, NULL, &touchpad_cnt, 1);
-    
+
     if (touchpad_pressed && touchpad_cnt > 0)
     {
         // if (example_lvgl_lock(-1))
         // {
-            data->point.x = touchpad_x[0];
-            data->point.y = touchpad_y[0];
-            data->state = LV_INDEV_STATE_PR;
-            example_lvgl_unlock();
+        data->point.x = touchpad_x[0];
+        data->point.y = touchpad_y[0];
+        data->state = LV_INDEV_STATE_PR;
+        example_lvgl_unlock();
         // }
     }
     else
@@ -230,16 +228,6 @@ static void example_lvgl_touch_cb(lv_indev_drv_t *drv, lv_indev_data_t *data)
         data->state = LV_INDEV_STATE_REL;
     }
 }
-/*JMH commented out not needed. Covered in lv_conf.h see: #define LV_TICK_CUSTOM 1*/
-/*Use a custom tick source that tells the elapsed time in milliseconds.
- *It removes the need to manually update the tick with `lv_tick_inc()`)*/
-//#define LV_TICK_CUSTOM 1
-// static void example_increase_lvgl_tick(void *arg)
-// {
-//     /* Tell LVGL how many milliseconds has elapsed */
-//     lv_tick_inc(EXAMPLE_LVGL_TICK_PERIOD_MS);
-// }
-
 
 static void example_lvgl_port_task(void *arg)
 {
@@ -269,7 +257,6 @@ static void example_lvgl_port_task(void *arg)
         {
             task_delay_ms = EXAMPLE_LVGL_TASK_MIN_DELAY_MS;
         }
-        
     }
 }
 
@@ -322,14 +309,14 @@ static esp_err_t i2c_master_init(void)
 
 void app_main(void)
 {
-    static lv_disp_draw_buf_t disp_buf; // contains internal graphic buffer(s) called draw buffer(s)
-    static lv_disp_drv_t disp_drv;      // contains callback functions
-    esp_log_level_set("*", ESP_LOG_VERBOSE);  //ESP_LOG_NONE,       /*!< No log output */
-                                    //ESP_LOG_ERROR,      /*!< Critical errors, software module can not recover on its own */
-                                    //ESP_LOG_WARN,       /*!< Error conditions from which recovery measures have been taken */
-                                    //ESP_LOG_INFO,       /*!< Information messages which describe normal flow of events */
-                                    //ESP_LOG_DEBUG,      /*!< Extra information which is not necessary for normal use (values, pointers, sizes, etc). */
-                                    //ESP_LOG_VERBOSE     /*!< Bigger chunks of debugging information, or frequent messages which can potentially flood the output. */
+    static lv_disp_draw_buf_t disp_buf;      // contains internal graphic buffer(s) called draw buffer(s)
+    static lv_disp_drv_t disp_drv;           // contains callback functions
+    esp_log_level_set("*", ESP_LOG_VERBOSE); // ESP_LOG_NONE,       /*!< No log output */
+                                             // ESP_LOG_ERROR,      /*!< Critical errors, software module can not recover on its own */
+                                             // ESP_LOG_WARN,       /*!< Error conditions from which recovery measures have been taken */
+                                             // ESP_LOG_INFO,       /*!< Information messages which describe normal flow of events */
+                                             // ESP_LOG_DEBUG,      /*!< Extra information which is not necessary for normal use (values, pointers, sizes, etc). */
+                                             // ESP_LOG_VERBOSE     /*!< Bigger chunks of debugging information, or frequent messages which can potentially flood the output. */
 
 #if CONFIG_EXAMPLE_AVOID_TEAR_EFFECT_WITH_SEM
     ESP_LOGI(TAG, "Create semaphores");
@@ -443,7 +430,7 @@ void app_main(void)
     ESP_LOGI(TAG, "Initialize GT911 I2C touch sensor");
     esp_lcd_touch_handle_t tp = NULL;
     esp_lcd_panel_io_handle_t tp_io_handle = NULL;
-    esp_lcd_panel_io_i2c_config_t tp_io_config = ESP_LCD_TOUCH_IO_I2C_GT911_CONFIG();//defined in esp_lcd_touch_gt911.h 
+    esp_lcd_panel_io_i2c_config_t tp_io_config = ESP_LCD_TOUCH_IO_I2C_GT911_CONFIG(); // defined in esp_lcd_touch_gt911.h
 
     /* instantuate touch object */
     if (esp_lcd_new_panel_io_i2c_v2(i2c_master_bus_handle, &tp_io_config, &tp_io_handle) != ESP_OK)
@@ -458,8 +445,8 @@ void app_main(void)
     lvgl_semaphore = xSemaphoreCreateMutex();
     ESP_LOGI(TAG, "Initialize LVGL library");
     lv_init();
-    void *buf1 = NULL;// will be used by lvgl as a staging area (memory space) to create display images/maps before posting to display ST7262
-    void *buf2 = NULL;// same as above, is the 2nd of two buffer spaces
+    void *buf1 = NULL; // will be used by lvgl as a staging area (memory space) to create display images/maps before posting to display ST7262
+    void *buf2 = NULL; // same as above, is the 2nd of two buffer spaces
 #if CONFIG_EXAMPLE_DOUBLE_FB
     ESP_LOGI(TAG, "Use frame buffers as LVGL draw buffers");
     ESP_ERROR_CHECK(esp_lcd_rgb_panel_get_frame_buffer(display_handle, 2, &buf1, &buf2));
@@ -468,19 +455,16 @@ void app_main(void)
 #else
     ESP_LOGI(TAG, "Allocate separate LVGL draw buffers from PSRAM");
     int buffer_size = (LVGL_PORT_DISP_WIDTH) * (LVGL_PORT_DISP_HEIGHT);
-    /*JMH commented out & replaced w/ the following: */
+    /*JMH commented out & replaced w/ the following: 
+    Note: inspite of above config setting we are actually using two buffers*/
     // buf1 = heap_caps_malloc(EXAMPLE_LCD_H_RES * 100 * sizeof(lv_color_t), MALLOC_CAP_SPIRAM);
-    
-    // Why using the below line, instead of the above, check the below link
-    // https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/system/mem_alloc.html
-    buf1 = heap_caps_malloc(buffer_size * sizeof(lv_color_t), MALLOC_CAP_SPIRAM); //MALLOC_CAP_DMA
+    buf1 = heap_caps_malloc(buffer_size * sizeof(lv_color_t), MALLOC_CAP_SPIRAM); // MALLOC_CAP_DMA
     assert(buf1);
-    buf2 = heap_caps_malloc(buffer_size *  sizeof(lv_color_t),  MALLOC_CAP_SPIRAM);//MALLOC_CAP_DMA
+    buf2 = heap_caps_malloc(buffer_size * sizeof(lv_color_t), MALLOC_CAP_SPIRAM); // MALLOC_CAP_DMA
     assert(buf2);
 
-
     // initialize LVGL draw buffers
-    lv_disp_draw_buf_init(&disp_buf, buf1, buf2, buffer_size); //EXAMPLE_LCD_H_RES * 100
+    lv_disp_draw_buf_init(&disp_buf, buf1, buf2, buffer_size); // EXAMPLE_LCD_H_RES * 100
 #endif // CONFIG_EXAMPLE_DOUBLE_FB
 
     ESP_LOGI(TAG, "Register display driver to LVGL");
@@ -494,22 +478,20 @@ void app_main(void)
     disp_drv.full_refresh = true; // the full_refresh mode can maintain the synchronization between the two frame buffers
 #endif
     lv_disp_t *disp = lv_disp_drv_register(&disp_drv);
-    
-    disp_drv.full_refresh = true; // the full_refresh mode can maintain the synchronization between the two frame buffers
 
+    disp_drv.full_refresh = true; // the full_refresh mode can maintain the synchronization between the two frame buffers
 
     ESP_LOGI(TAG, "Install LVGL tick timer");
     // Tick Interface for LVGL using esp_timer to generate 2ms periodic event
-  const esp_timer_create_args_t lvgl_tick_timer_args =
-  {
-    .callback = &lvgl_tick,
-    .name = "lvgl_tick",
-    .skip_unhandled_events = true
-  };
-  esp_timer_handle_t lvgl_tick_timer;
-  ESP_ERROR_CHECK(esp_timer_create(&lvgl_tick_timer_args, &lvgl_tick_timer));
-  ESP_ERROR_CHECK(esp_timer_start_periodic(lvgl_tick_timer, LV_TICK_PERIOD_MS * 1000));  // here time is in micro seconds
-// Tick Interface for LVGL using esp_timer to generate 2ms periodic event
+    const esp_timer_create_args_t lvgl_tick_timer_args =
+        {
+            .callback = &lvgl_tick,
+            .name = "lvgl_tick",
+            .skip_unhandled_events = true};
+    esp_timer_handle_t lvgl_tick_timer;
+    ESP_ERROR_CHECK(esp_timer_create(&lvgl_tick_timer_args, &lvgl_tick_timer));
+    ESP_ERROR_CHECK(esp_timer_start_periodic(lvgl_tick_timer, LV_TICK_PERIOD_MS * 1000)); // here time is in micro seconds
+                                                                                          // Tick Interface for LVGL using esp_timer to generate 2ms periodic event
 
     static lv_indev_drv_t indev_drv; // Input device driver (Touch)
     lv_indev_drv_init(&indev_drv);
@@ -520,7 +502,6 @@ void app_main(void)
     indev_drv.user_data = tp;
 
     lv_indev_drv_register(&indev_drv);
-   
 
     lvgl_mux = xSemaphoreCreateRecursiveMutex();
     assert(lvgl_mux);
@@ -532,16 +513,16 @@ void app_main(void)
     // Lock the mutex due to the LVGL APIs are not thread-safe
     if (example_lvgl_lock(-1))
     {
-        example_lvgl_demo_ui(disp);
+        example_lvgl_demo_ui(disp);//moved the demos/examples to here
         // lv_example_btn_1();
-        //lv_demo_widgets();
+        // lv_demo_widgets();
         // lv_demo_benchmark();
         // lv_demo_music();
         // lv_demo_stress();
         // Release the mutex
         example_lvgl_unlock();
     }
-    
+
     static const char *TAG = "lvgl_flush_cb";
     /*Set to '1' if you want to keep doing some other activity*/
     while (0)
@@ -552,27 +533,31 @@ void app_main(void)
             FlushFired = false;
             /* uncomment for test/debug */
             // printf("offsetx1:%d; offsetx2:%d; offsety1:%d; offsety2:%d\n", offsetx1, offsetx2, offsety1, offsety2);
-            //ESP_LOGI(TAG, "offsetx1:%d; offsetx2:%d; offsety1:%d; offsety2:%d\n", offsetx1, offsetx2, offsety1, offsety2);
+            // ESP_LOGI(TAG, "offsetx1:%d; offsetx2:%d; offsety1:%d; offsety2:%d\n", offsetx1, offsetx2, offsety1, offsety2);
         }
         // printf("Another Process\n");
         vTaskDelay(pdMS_TO_TICKS(25));
     }
 }
 
-void example_lvgl_demo_ui(lv_disp_t *disp){
-    //lv_example_btn_1();
+void example_lvgl_demo_ui(lv_disp_t *disp)
+{
+    //lv_example_textarea_1();
+    //lv_example_textarea_3();
+    // lv_example_btn_1();
     lv_demo_widgets();
 }
-
-/**
+/*JMH not needed, when in lv_conf.h, #define LV_TICK_CUSTOM 1 .
+ *Use a custom tick source that tells the elapsed time in milliseconds.
+ *
  * @brief LVGL Tick Function Hook
  *        LVGL need to call function lv_tick_inc periodically @ LV_TICK_PERIOD_MS
  *        to keep timing information.
- * @param arg 
+ * @param arg
  */
 static void lvgl_tick(void *arg)
 {
-  (void) arg;
+    (void)arg;
 
-  lv_tick_inc(LV_TICK_PERIOD_MS);
+    lv_tick_inc(LV_TICK_PERIOD_MS);
 }
