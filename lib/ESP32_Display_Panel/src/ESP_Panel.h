@@ -5,16 +5,10 @@
  */
 #pragma once
 
-#include "ESP_Panel_Conf_Internal.h"
+#include "ESP_Panel_Library.h"
 
 #ifdef ESP_PANEL_USE_BOARD
 #include <memory>
-#include <ESP_IOExpander_Library.h>
-#include "host/ESP_PanelHost.h"
-#include "bus/ESP_PanelBus.h"
-#include "lcd/ESP_PanelLcd.h"
-#include "touch/ESP_PanelTouch.h"
-#include "backlight/ESP_PanelBacklight.h"
 
 /**
  * @brief Panel device class
@@ -90,9 +84,8 @@ private:
     bool _is_initialed;
     bool _use_external_expander;
     std::shared_ptr<ESP_PanelBus> _lcd_bus_ptr;
-    //std::shared_ptr<ESP_PanelBus> _touch_bus_ptr;
-    std::shared_ptr<ESP_PanelBus_I2C> _touch_bus_ptr; //JMH ADD modified
     std::shared_ptr<ESP_PanelLcd> _lcd_ptr;
+    std::shared_ptr<ESP_PanelBus> _touch_bus_ptr;
     std::shared_ptr<ESP_PanelTouch> _touch_ptr;
     std::shared_ptr<ESP_PanelBacklight> _backlight_ptr;
     std::shared_ptr<ESP_IOExpander> _expander_ptr;

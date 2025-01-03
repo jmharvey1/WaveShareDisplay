@@ -7,15 +7,10 @@
 #include <cstring>
 #include "ESP_PanelLog.h"
 #include "ESP_PanelHost.h"
-#include "touch/base/esp_lcd_touch.h"
-#include "bus/I2C.h"
 
 using namespace std;
 
 static const char *TAG = "ESP_PanelHost";
-
-i2c_port_t host_id = ESP_PANEL_HOST_I2C_ID_DEFAULT;
-//ESP_PanelBus_I2C *PnlBus_I2C = new ESP_PanelBus_I2C(host_id);
 
 ESP_PanelHost::ESP_PanelHost()
 {
@@ -25,64 +20,46 @@ ESP_PanelHost::~ESP_PanelHost()
 {
     ESP_PANEL_ENABLE_TAG_DEBUG_LOG();
 
-    ESP_LOGD(TAG, "Destory");
+    ESP_LOGD(TAG, "Destroyed");
 }
-/*JMH Commented out*/
-// bool ESP_PanelHost::addHostI2C(const i2c_config_t &host_config, i2c_port_t host_id)
-// {
-//     ESP_PANEL_ENABLE_TAG_DEBUG_LOG();
 
-//     auto ret = _i2c_host_config_map.find(host_id);
-//     if (ret == _i2c_host_config_map.end()) {
-//         _i2c_host_config_map.insert(pair<i2c_port_t, i2c_config_t>(host_id, host_config));
-//         ESP_LOGD(TAG, "Add host I2C[%d]", (int)host_id);
-
-//         return true;
-//     }
-//     ESP_PANEL_CHECK_FALSE_RET(!memcmp(&ret->second, &host_config, sizeof(i2c_config_t)), false,
-//                               "Host I2C[%d] is already exist and attempt to add with a different configuartion", (int)host_id);
-//     ESP_LOGD(TAG, "Host I2C[%d] is already exist", (int)host_id);
-
-//     return true;
-// }
-/*JMH ADDED*/
-bool ESP_PanelHost::addHostI2C(const esp_lcd_touch_config_t &host_config, i2c_port_t host_id)
+bool ESP_PanelHost::addHostI2C(const i2c_config_t &host_config, i2c_port_t host_id)
 {
     ESP_PANEL_ENABLE_TAG_DEBUG_LOG();
 
     auto ret = _i2c_host_config_map.find(host_id);
     if (ret == _i2c_host_config_map.end()) {
-       // _i2c_host_config_map.insert(pair<i2c_port_t, i2c_master_bus_config_t>(host_id, host_config));
-        _i2c_host_config_map.insert({host_id, host_config});
+        _i2c_host_config_map.insert(pair<i2c_port_t, i2c_config_t>(host_id, host_config));
         ESP_LOGD(TAG, "Add host I2C[%d]", (int)host_id);
 
         return true;
     }
-    ESP_PANEL_CHECK_FALSE_RET(!memcmp(&ret->second, &host_config, sizeof(i2c_master_bus_config_t)), false,
-                              "Host I2C[%d] is already exist and attempt to add with a different configuartion", (int)host_id);
     ESP_LOGD(TAG, "Host I2C[%d] is already exist", (int)host_id);
+    ESP_PANEL_CHECK_FALSE_RET(!memcmp(&ret->second, &host_config, sizeof(i2c_config_t)), false,
+                              "Attempt to add with a different configuartion");
 
     return true;
 }
-// bool ESP_PanelHost::addHostI2C(int scl_io, int sda_io, i2c_port_t host_id)
-// {
-//     ESP_PANEL_ENABLE_TAG_DEBUG_LOG();
 
-//     i2c_config_t host_config = ESP_PANEL_HOST_I2C_CONFIG_DEFAULT(scl_io, sda_io);
+bool ESP_PanelHost::addHostI2C(int scl_io, int sda_io, i2c_port_t host_id)
+{
+    ESP_PANEL_ENABLE_TAG_DEBUG_LOG();
 
-//     auto ret = _i2c_host_config_map.find(host_id);
-//     if (ret == _i2c_host_config_map.end()) {
-//         _i2c_host_config_map.insert(pair<i2c_port_t, i2c_config_t>(host_id, host_config));
-//         ESP_LOGD(TAG, "Add host I2C[%d]", (int)host_id);
+    i2c_config_t host_config = ESP_PANEL_HOST_I2C_CONFIG_DEFAULT(scl_io, sda_io);
 
-//         return true;
-//     }
-//     ESP_PANEL_CHECK_FALSE_RET(!memcmp(&ret->second, &host_config, sizeof(i2c_config_t)), false,
-//                               "Host I2C[%d] is already exist and attempt to add with a different configuartion", (int)host_id);
-//     ESP_LOGD(TAG, "Host I2C[%d] is already exist", (int)host_id);
+    auto ret = _i2c_host_config_map.find(host_id);
+    if (ret == _i2c_host_config_map.end()) {
+        _i2c_host_config_map.insert(pair<i2c_port_t, i2c_config_t>(host_id, host_config));
+        ESP_LOGD(TAG, "Add host I2C[%d]", (int)host_id);
 
-//     return true;
-// }
+        return true;
+    }
+    ESP_LOGD(TAG, "Host I2C[%d] is already exist", (int)host_id);
+    ESP_PANEL_CHECK_FALSE_RET(!memcmp(&ret->second, &host_config, sizeof(i2c_config_t)), false,
+                              "Attempt to add with a different configuartion");
+
+    return true;
+}
 
 bool ESP_PanelHost::addHostSPI(const spi_bus_config_t &host_config, spi_host_device_t host_id)
 {
@@ -95,9 +72,10 @@ bool ESP_PanelHost::addHostSPI(const spi_bus_config_t &host_config, spi_host_dev
 
         return true;
     }
-    ESP_PANEL_CHECK_FALSE_RET(!memcmp(&ret->second, &host_config, sizeof(spi_bus_config_t)), false,
-                              "Host SPI[%d] is already exist and attempt to add with a different configuartion", (int)host_id);
     ESP_LOGD(TAG, "Host SPI[%d] is already exist", (int)host_id);
+
+    ESP_PANEL_CHECK_FALSE_RET(compare_spi_host_config(ret->second, host_config), false,
+                              "Attempt to add with a different configuartion");
 
     return true;
 }
@@ -115,9 +93,10 @@ bool ESP_PanelHost::addHostSPI(int sck_io, int sda_io, int sdo_io, spi_host_devi
 
         return true;
     }
-    ESP_PANEL_CHECK_FALSE_RET(!memcmp(&ret->second, &host_config, sizeof(spi_bus_config_t)), false,
-                              "SPI[%d] is already exist and attempt to add with a different configuartion", (int)host_id);
     ESP_LOGD(TAG, "Host SPI[%d] is already exist", (int)host_id);
+
+    ESP_PANEL_CHECK_FALSE_RET(compare_spi_host_config(ret->second, host_config), false,
+                              "Attempt to add with a different configuartion");
 
     return true;
 }
@@ -133,9 +112,9 @@ bool ESP_PanelHost::addHostQSPI(const spi_bus_config_t &host_config, spi_host_de
 
         return true;
     }
-    ESP_PANEL_CHECK_FALSE_RET(!memcmp(&ret->second, &host_config, sizeof(spi_bus_config_t)), false,
-                              "Host SPI[%d] is already exist and attempt to add with a different configuartion", (int)host_id);
     ESP_LOGD(TAG, "Host SPI[%d] is already exist", (int)host_id);
+    ESP_PANEL_CHECK_FALSE_RET(!memcmp(&ret->second, &host_config, sizeof(spi_bus_config_t)), false,
+                              "Attempt to add with a different configuartion");
 
     return true;
 }
@@ -153,9 +132,9 @@ bool ESP_PanelHost::addHostQSPI(int sck_io, int d0_io, int d1_io, int d2_io, int
 
         return true;
     }
-    ESP_PANEL_CHECK_FALSE_RET(!memcmp(&ret->second, &host_config, sizeof(spi_bus_config_t)), false,
-                              "SPI[%d] is already exist and attempt to add with a different configuartion", (int)host_id);
     ESP_LOGD(TAG, "Host SPI[%d] is already exist", (int)host_id);
+    ESP_PANEL_CHECK_FALSE_RET(!memcmp(&ret->second, &host_config, sizeof(spi_bus_config_t)), false,
+                              "Attempt to add with a different configuartion");
 
     return true;
 }
@@ -165,15 +144,14 @@ bool ESP_PanelHost::begin(void)
     ESP_PANEL_ENABLE_TAG_DEBUG_LOG();
 
     // Initialize all I2C hosts
-    ESP_LOGD(TAG, "Initialize host I2C[%d]", 0);
-    // if (_i2c_host_config_map.size() > 0) {
-    //     for (auto &it : _i2c_host_config_map) {
-    //         //ESP_PANEL_CHECK_ERR_RET(i2c_param_config(it.first, &it.second), false, "I2C[%d] config param failed", it.first);
-    //         //ESP_PANEL_CHECK_ERR_RET(i2c_driver_install(it.first, it.second.mode, 0, 0, 0), false, "I2C[%d] install driver failed",
-    //         //                        it.first);
-            
-    //     }
-    // }
+    if (_i2c_host_config_map.size() > 0) {
+        for (auto &it : _i2c_host_config_map) {
+            ESP_PANEL_CHECK_ERR_RET(i2c_param_config(it.first, &it.second), false, "I2C[%d] config param failed", it.first);
+            ESP_PANEL_CHECK_ERR_RET(i2c_driver_install(it.first, it.second.mode, 0, 0, 0), false, "I2C[%d] install driver failed",
+                                    it.first);
+            ESP_LOGD(TAG, "Initialize host I2C[%d]", (int)it.first);
+        }
+    }
 
     // Initialize all SPI hosts
     if (_spi_host_config_map.size() > 0) {
@@ -186,11 +164,17 @@ bool ESP_PanelHost::begin(void)
 
     return true;
 }
-// /*JMH Add the following method */
-// void ESP_PanelHost::SetupMasterI2C(gpio_num_t scl_io, gpio_num_t sda_io)
-// {
-//     i2c_mst_config = ESP_PANEL_I2C_MASTER_BUS_CONFIG_DEFAULT(scl_io, sda_io);
-//     dev_cfg = ESP_PANEL_I2C_DEVICE_CONFIG_DEFAULT(ESP_PANEL_TOUCH_I2C_ADDRESS);
-//     ESP_ERROR_CHECK(i2c_new_master_bus(&i2c_mst_config, &i2c_master_bus_handle));
-//     ESP_ERROR_CHECK(i2c_master_bus_add_device(i2c_master_bus_handle, &dev_cfg, &dev_handle));
-// }
+
+bool ESP_PanelHost::compare_spi_host_config(spi_bus_config_t &old_config, const spi_bus_config_t &new_config)
+{
+    spi_bus_config_t temp_config = { };
+    memcpy(&temp_config, &new_config, sizeof(spi_bus_config_t));
+
+    if (temp_config.miso_io_num == -1) {
+        temp_config.miso_io_num = old_config.miso_io_num;
+    } else if (old_config.miso_io_num == -1) {
+        old_config.miso_io_num = temp_config.miso_io_num;
+    }
+
+    return !memcmp(&old_config, &temp_config, sizeof(spi_bus_config_t));
+}

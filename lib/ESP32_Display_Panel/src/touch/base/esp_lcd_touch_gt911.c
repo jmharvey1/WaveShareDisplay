@@ -15,16 +15,10 @@
 #include "esp_log.h"
 #include "esp_check.h"
 #include "driver/gpio.h"
-//#include "driver/i2c.h"
-//#include "driver/i2c_master.h"
+#include "driver/i2c.h"
 #include "esp_lcd_panel_io.h"
 #include "esp_lcd_touch.h"
-#include "sys/cdefs.h" //JMH ADDED to support __container call
-#include "esp_lcd_panel_io_interface.h"   //JMH ADDED to support __container call
-#include "soc/i2c_periph.h"
-#include "driver/i2c_master.h"
-#include "hal/i2c_types.h"
-//#include "i2c_private.h"
+
 #include "esp_lcd_touch_gt911.h"
 
 static const char *TAG = "GT911";
@@ -61,19 +55,6 @@ static esp_err_t touch_gt911_read_cfg(esp_lcd_touch_handle_t tp);
 /* GT911 enter/exit sleep mode */
 static esp_err_t esp_lcd_touch_gt911_enter_sleep(esp_lcd_touch_handle_t tp);
 static esp_err_t esp_lcd_touch_gt911_exit_sleep(esp_lcd_touch_handle_t tp);
- //JMH ADDED to support __container call - Did not work. So is not used
-typedef struct {
-    esp_lcd_panel_io_t base; // Base class of generic lcd panel io
-    i2c_master_dev_handle_t i2c_handle; // I2C master driver handle.
-    uint32_t dev_addr;       // Device address
-    int lcd_cmd_bits;        // Bit width of LCD command
-    int lcd_param_bits;      // Bit width of LCD parameter
-    bool control_phase_enabled; // Is control phase enabled
-    uint32_t control_phase_cmd;  // control byte when transferring command
-    uint32_t control_phase_data; // control byte when transferring data
-    esp_lcd_panel_io_color_trans_done_cb_t on_color_trans_done; // User register's callback, invoked when color data trans done
-    void *user_ctx;             // User's private data, passed directly to callback on_color_trans_done()
-} lcd_panel_io_i2c_t;
 
 /*******************************************************************************
 * Public API functions
@@ -207,12 +188,10 @@ static esp_err_t esp_lcd_touch_gt911_read_data(esp_lcd_touch_handle_t tp)
     size_t i = 0;
 
     assert(tp != NULL);
-    //printf("esp_lcd_touch_gt911_read_data(esp_lcd_touch_handle_t tp)\n");//JMH ADD
-    err = touch_gt911_i2c_read(tp, ESP_LCD_TOUCH_GT911_READ_XY_REG, buf, 1);//-> found in this same file
+
+    err = touch_gt911_i2c_read(tp, ESP_LCD_TOUCH_GT911_READ_XY_REG, buf, 1);
     ESP_RETURN_ON_ERROR(err, TAG, "I2C read error!");
-    /*JMH attempt to fix reset master bus index*/
-    // lcd_panel_io_i2c_t *i2c_panel_io = __containerof(tp->io, lcd_panel_io_i2c_t, base);
-    // i2c_panel_io->i2c_handle->master_bus->index = 0;
+
     /* Any touch data? */
     if ((buf[0] & 0x80) == 0x00) {
         touch_gt911_i2c_write(tp, ESP_LCD_TOUCH_GT911_READ_XY_REG, clear);
@@ -395,7 +374,7 @@ static esp_err_t touch_gt911_i2c_read(esp_lcd_touch_handle_t tp, uint16_t reg, u
     assert(data != NULL);
 
     /* Read data */
-    return esp_lcd_panel_io_rx_param(tp->io, reg, data, len);//->components/esp_lcd/src/esp_lcd_panel_io.c:13
+    return esp_lcd_panel_io_rx_param(tp->io, reg, data, len);
 }
 
 static esp_err_t touch_gt911_i2c_write(esp_lcd_touch_handle_t tp, uint16_t reg, uint8_t data)

@@ -7,21 +7,15 @@
 #pragma once
 
 #include <map>
-//#include "driver/i2c.h"
-#include "driver/i2c_master.h"
+#include "driver/i2c.h"
 #include "driver/spi_master.h"
 #include "sdkconfig.h"
-#include "touch/base/esp_lcd_touch.h" //JMH ADDED
 
-/*
+/**
  * I2C Host Default Configuration
  *
  */
-
-#define ESP_PANEL_HOST_I2C_ID_DEFAULT (I2C_NUM_0)
-
-/*JMH Legecy Driver entry; No longer needed*/
-/*
+#define ESP_PANEL_HOST_I2C_ID_DEFAULT    (I2C_NUM_0)
 #define ESP_PANEL_HOST_I2C_CONFIG_DEFAULT(scl_io, sda_io)       \
     {                                                           \
         .mode = I2C_MODE_MASTER,                                \
@@ -34,31 +28,7 @@
         },                                                      \
         .clk_flags = I2C_SCLK_SRC_FLAG_FOR_NOMAL,               \
     }
-*/    
-//i2c_master_bus_config_t i2c_mst_config = {
-/*JMH ADD Note: I assumed port 0*/
-#define ESP_PANEL_I2C_MASTER_BUS_CONFIG_DEFAULT(scl_io, sda_io) \
-    {                                                           \
-    .i2c_port = I2C_NUM_0,                                      \
-    .sda_io_num = sda_io,                                       \
-    .scl_io_num = scl_io,                                       \
-    .clk_source = I2C_CLK_SRC_DEFAULT,                          \
-    .glitch_ignore_cnt = 7,                                     \
-    .intr_priority = 0,                                         \
-    .trans_queue_depth = 4,                                    \
-    .flags = {                                                  \
-    .enable_internal_pullup = true,                             \
-    },                                                          \
-    }
 
-/* i2c_device_config_t dev_cfg = { */
-/*JMH ADD*/
-#define ESP_PANEL_I2C_DEVICE_CONFIG_DEFAULT(dev_addr)           \
-    {                                                           \
-    .dev_addr_length = I2C_ADDR_BIT_LEN_7,                      \
-    .device_address = dev_addr,                                 \
-    .scl_speed_hz =  400000,                                    \
-}
 /**
  * SPI & QSPI Host Default Configuration
  *
@@ -107,11 +77,9 @@ class ESP_PanelHost {
 public:
     ESP_PanelHost();
     ~ESP_PanelHost();
-    /*JMH Commented out*/
-    // bool addHostI2C(const i2c_config_t &host_config, i2c_port_t host_id);
-    /*JMH Added to support current I2C driver*/
-    bool addHostI2C(const esp_lcd_touch_config_t &host_config, i2c_port_t host_id);
-    // bool addHostI2C(int scl_io, int sda_io, i2c_port_t host_id);
+
+    bool addHostI2C(const i2c_config_t &host_config, i2c_port_t host_id);
+    bool addHostI2C(int scl_io, int sda_io, i2c_port_t host_id);
 
     bool addHostSPI(const spi_bus_config_t &host_config, spi_host_device_t host_id);
     bool addHostSPI(int sck_io, int sda_io, int sdo_io, spi_host_device_t host_id);
@@ -120,32 +88,10 @@ public:
     bool addHostQSPI(int sck_io, int d0_io, int d1_io, int d2_io, int d3_io, spi_host_device_t host_id);
 
     bool begin(void);
-    /*JMH ADDED*/
-    //void SetupMasterI2C(gpio_num_t scl_io, gpio_num_t sda_io);
 
 private:
-    //std::map<i2c_port_t, i2c_config_t> _i2c_host_config_map;
-    std::map<i2c_port_t, esp_lcd_touch_config_t> _i2c_host_config_map;
-    std::map<spi_host_device_t, spi_bus_config_t> _spi_host_config_map;
-        // i2c_master_bus_config_t i2c_mst_config = {
-    //     .clk_source = I2C_CLK_SRC_DEFAULT,
-    //     .i2c_port = TEST_I2C_PORT,
-    //     .scl_io_num = I2C_MASTER_SCL_IO,
-    //     .sda_io_num = I2C_MASTER_SDA_IO,
-    //     .glitch_ignore_cnt = 7,
-    //     .flags.enable_internal_pullup = true,
-    // };
-    /*JMH Added to support new/current I2C driver*/
-    i2c_master_bus_config_t i2c_mst_config;
-    // i2c_device_config_t dev_cfg = {
-    //     .dev_addr_length = I2C_ADDR_BIT_LEN_7,     /*!< Select the address length of the slave device. */
-    //     .device_address = 0x58,                    /*!< I2C device raw address. (The 7/10 bit address without read/write bit) */
-    //     .scl_speed_hz = 100000,                    /*!< I2C SCL line frequency. */
-    // };
-    /*JMH Added to support new/current I2C driver*/
-    i2c_device_config_t dev_cfg;
-    /*JMH Add the following 2 lines/properties*/
-    i2c_master_bus_handle_t i2c_master_bus_handle;
-    i2c_master_dev_handle_t dev_handle;
+    bool compare_spi_host_config(spi_bus_config_t &old_config, const spi_bus_config_t &new_config);
 
+    std::map<i2c_port_t, i2c_config_t> _i2c_host_config_map;
+    std::map<spi_host_device_t, spi_bus_config_t> _spi_host_config_map;
 };

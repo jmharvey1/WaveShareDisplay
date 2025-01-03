@@ -9,7 +9,7 @@
 // *INDENT-OFF*
 
 /* Set to 1 if using a custom board */
-#define ESP_PANEL_USE_CUSTOM_BOARD       (1)         // 0/1
+#define ESP_PANEL_USE_CUSTOM_BOARD       (0)         // 0/1
 
 #if ESP_PANEL_USE_CUSTOM_BOARD
 
@@ -17,7 +17,7 @@
 //////////////////////////// Please update the following macros to configure the LCD panel /////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /* Set to 1 when using an LCD panel */
-#define ESP_PANEL_USE_LCD           (1)     // 0/1
+#define ESP_PANEL_USE_LCD           (0)     // 0/1
 
 #if ESP_PANEL_USE_LCD
 /**
@@ -29,18 +29,20 @@
  *      - SPD2010
  *      - ST7262, ST7701, ST7789, ST7796, ST77916, ST77922
  */
-#define ESP_PANEL_LCD_NAME          ST7262
+#define ESP_PANEL_LCD_NAME          ILI9341
 
 /* LCD resolution in pixels */
-#define ESP_PANEL_LCD_WIDTH         (800)
-#define ESP_PANEL_LCD_HEIGHT        (480)
+#define ESP_PANEL_LCD_WIDTH         (320)
+#define ESP_PANEL_LCD_HEIGHT        (240)
 
 /* LCD Bus Settings */
 /**
  * If set to 1, the bus will skip to initialize the corresponding host. Users need to initialize the host in advance.
  * It is useful if other devices use the same host. Please ensure that the host is initialized only once.
+ *
+ * Set to 1 if only the RGB interface is used without the 3-wire SPI interface,
  */
-#define ESP_PANEL_LCD_BUS_SKIP_INIT_HOST    (1)     // 0/1
+#define ESP_PANEL_LCD_BUS_SKIP_INIT_HOST    (0)     // 0/1
 /**
  * LCD Bus Type. Choose one of the following:
  *      - ESP_PANEL_BUS_TYPE_I2C (not ready)
@@ -49,7 +51,7 @@
  *      - ESP_PANEL_BUS_TYPE_I80 (not ready)
  *      - ESP_PANEL_BUS_TYPE_RGB (only supported for ESP32-S3)
  */
-#define ESP_PANEL_LCD_BUS_TYPE      (ESP_PANEL_BUS_TYPE_RGB)
+#define ESP_PANEL_LCD_BUS_TYPE      (ESP_PANEL_BUS_TYPE_SPI)
 /**
  * LCD Bus Parameters.
  *
@@ -94,13 +96,13 @@
 
 #elif ESP_PANEL_LCD_BUS_TYPE == ESP_PANEL_BUS_TYPE_RGB
 
-    #define ESP_PANEL_LCD_RGB_CLK_HZ            (13 * 1000 * 1000)
-    #define ESP_PANEL_LCD_RGB_HPW               (4)
-    #define ESP_PANEL_LCD_RGB_HBP               (8)
-    #define ESP_PANEL_LCD_RGB_HFP               (8)
-    #define ESP_PANEL_LCD_RGB_VPW               (4)
-    #define ESP_PANEL_LCD_RGB_VBP               (8)
-    #define ESP_PANEL_LCD_RGB_VFP               (8)
+    #define ESP_PANEL_LCD_RGB_CLK_HZ            (16 * 1000 * 1000)
+    #define ESP_PANEL_LCD_RGB_HPW               (10)
+    #define ESP_PANEL_LCD_RGB_HBP               (10)
+    #define ESP_PANEL_LCD_RGB_HFP               (20)
+    #define ESP_PANEL_LCD_RGB_VPW               (10)
+    #define ESP_PANEL_LCD_RGB_VBP               (10)
+    #define ESP_PANEL_LCD_RGB_VFP               (10)
     #define ESP_PANEL_LCD_RGB_PCLK_ACTIVE_NEG   (0)     // 0: rising edge, 1: falling edge
     #define ESP_PANEL_LCD_RGB_DATA_WIDTH        (16)    //  8 | 16
     #define ESP_PANEL_LCD_RGB_PIXEL_BITS        (16)    // 24 | 16
@@ -111,26 +113,26 @@
                                                         // where N is an even number.
     #define ESP_PANEL_LCD_RGB_IO_HSYNC          (46)
     #define ESP_PANEL_LCD_RGB_IO_VSYNC          (3)
-    #define ESP_PANEL_LCD_RGB_IO_DE             (5)   // -1 if not used
-    #define ESP_PANEL_LCD_RGB_IO_PCLK           (7)
+    #define ESP_PANEL_LCD_RGB_IO_DE             (17)   // -1 if not used
+    #define ESP_PANEL_LCD_RGB_IO_PCLK           (9)
     #define ESP_PANEL_LCD_RGB_IO_DISP           (-1)    // -1 if not used
-    #define ESP_PANEL_LCD_RGB_IO_DATA0          (14)
-    #define ESP_PANEL_LCD_RGB_IO_DATA1          (38)
-    #define ESP_PANEL_LCD_RGB_IO_DATA2          (18)
-    #define ESP_PANEL_LCD_RGB_IO_DATA3          (17)
-    #define ESP_PANEL_LCD_RGB_IO_DATA4          (10)
-    #define ESP_PANEL_LCD_RGB_IO_DATA5          (39)
-    #define ESP_PANEL_LCD_RGB_IO_DATA6          (0)
-    #define ESP_PANEL_LCD_RGB_IO_DATA7          (45)
+    #define ESP_PANEL_LCD_RGB_IO_DATA0          (10)
+    #define ESP_PANEL_LCD_RGB_IO_DATA1          (11)
+    #define ESP_PANEL_LCD_RGB_IO_DATA2          (12)
+    #define ESP_PANEL_LCD_RGB_IO_DATA3          (13)
+    #define ESP_PANEL_LCD_RGB_IO_DATA4          (14)
+    #define ESP_PANEL_LCD_RGB_IO_DATA5          (21)
+    #define ESP_PANEL_LCD_RGB_IO_DATA6          (47)
+    #define ESP_PANEL_LCD_RGB_IO_DATA7          (48)
 #if ESP_PANEL_LCD_RGB_DATA_WIDTH > 8
-    #define ESP_PANEL_LCD_RGB_IO_DATA8          (48)
-    #define ESP_PANEL_LCD_RGB_IO_DATA9          (47)
-    #define ESP_PANEL_LCD_RGB_IO_DATA10         (21)
-    #define ESP_PANEL_LCD_RGB_IO_DATA11         (1)
-    #define ESP_PANEL_LCD_RGB_IO_DATA12         (2)
+    #define ESP_PANEL_LCD_RGB_IO_DATA8          (45)
+    #define ESP_PANEL_LCD_RGB_IO_DATA9          (38)
+    #define ESP_PANEL_LCD_RGB_IO_DATA10         (39)
+    #define ESP_PANEL_LCD_RGB_IO_DATA11         (40)
+    #define ESP_PANEL_LCD_RGB_IO_DATA12         (41)
     #define ESP_PANEL_LCD_RGB_IO_DATA13         (42)
-    #define ESP_PANEL_LCD_RGB_IO_DATA14         (41)
-    #define ESP_PANEL_LCD_RGB_IO_DATA15         (40)
+    #define ESP_PANEL_LCD_RGB_IO_DATA14         (2)
+    #define ESP_PANEL_LCD_RGB_IO_DATA15         (1)
 #endif
 #if !ESP_PANEL_LCD_BUS_SKIP_INIT_HOST
     #define ESP_PANEL_LCD_3WIRE_SPI_IO_CS               (0)
@@ -205,16 +207,18 @@
 //////////////////////////// Please update the following macros to configure the touch panel ///////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /* Set to 1 when using an touch panel */
-#define ESP_PANEL_USE_TOUCH         (1)         // 0/1
+#define ESP_PANEL_USE_TOUCH         (0)         // 0/1
 #if ESP_PANEL_USE_TOUCH
 /**
  * Touch controller name. Choose one of the following:
  *      - CST816S
  *      - FT5x06
  *      - GT911, GT1151
+ *      - ST1633, ST7123
  *      - TT21100
+ *      - XPT2046
  */
-#define ESP_PANEL_TOUCH_NAME        GT911
+#define ESP_PANEL_TOUCH_NAME        TT21100
 
 /* Touch resolution in pixels */
 #define ESP_PANEL_TOUCH_H_RES       (ESP_PANEL_LCD_WIDTH)   // Typically set to the same value as the width of LCD
@@ -229,7 +233,7 @@
 /**
  * Touch panel bus type. Choose one of the following:
  *      - ESP_PANEL_BUS_TYPE_I2C
- *      - ESP_PANEL_BUS_TYPE_SPI (not ready)
+ *      - ESP_PANEL_BUS_TYPE_SPI
  */
 #define ESP_PANEL_TOUCH_BUS_TYPE            (ESP_PANEL_BUS_TYPE_I2C)
 /* Touch panel bus parameters */
@@ -242,9 +246,21 @@
                                                     // Typically set to 400K
     #define ESP_PANEL_TOUCH_I2C_SCL_PULLUP  (1)     // 0/1
     #define ESP_PANEL_TOUCH_I2C_SDA_PULLUP  (1)     // 0/1
-    #define ESP_PANEL_TOUCH_I2C_IO_SCL      (9)
+    #define ESP_PANEL_TOUCH_I2C_IO_SCL      (18)
     #define ESP_PANEL_TOUCH_I2C_IO_SDA      (8)
 #endif
+
+#elif ESP_PANEL_TOUCH_BUS_TYPE == ESP_PANEL_BUS_TYPE_SPI
+
+    #define ESP_PANEL_TOUCH_BUS_HOST_ID         (1)     // Typically set to 1
+    #define ESP_PANEL_TOUCH_SPI_IO_CS           (5)
+#if !ESP_PANEL_TOUCH_BUS_SKIP_INIT_HOST
+    #define ESP_PANEL_TOUCH_SPI_IO_SCK          (7)
+    #define ESP_PANEL_TOUCH_SPI_IO_MOSI         (6)
+    #define ESP_PANEL_TOUCH_SPI_IO_MISO         (9)
+#endif
+    #define ESP_PANEL_TOUCH_SPI_CLK_HZ          (1 * 1000 * 1000)
+                                                        // Should be an integer divisor of 80M, typically set to 1M
 
 #else
 
@@ -291,6 +307,7 @@
 #if ESP_PANEL_USE_EXPANDER
 /**
  * IO expander name. Choose one of the following:
+ *      - CH422G
  *      - HT8574
  *      - TCA95xx_8bit
  *      - TCA95xx_16bit
@@ -304,7 +321,9 @@
  */
 #define ESP_PANEL_EXPANDER_SKIP_INIT_HOST       (0)     // 0/1
 /* IO expander parameters */
-#define ESP_PANEL_EXPANDER_I2C_ADDRESS          (0x20)
+#define ESP_PANEL_EXPANDER_I2C_ADDRESS          (0x20)  // The actual I2C address. Even for the same model of IC,
+                                                        // the I2C address may be different, and confirmation based on
+                                                        // the actual hardware connection is required
 #if !ESP_PANEL_EXPANDER_SKIP_INIT_HOST
     #define ESP_PANEL_EXPANDER_HOST_ID          (0)     // Typically set to 0
     #define ESP_PANEL_EXPANDER_I2C_CLK_HZ       (400 * 1000)
@@ -329,6 +348,21 @@
 // #define ESP_PANEL_BEGIN_BACKLIGHT_START_FUNCTION( panel )
 // #define ESP_PANEL_BEGIN_BACKLIGHT_END_FUNCTION( panel )
 // #define ESP_PANEL_BEGIN_END_FUNCTION( panel )
+
+/**
+ * Do not change the following versions, they are used to check if the configurations in this file are compatible with
+ * the current version of `ESP_Panel_Board_Custom.h` in the library. The detailed rules are as follows:
+ *
+ *   1. If the major version is not consistent, then the configurations in this file are incompatible with the library
+ *      and must be replaced with the file from the library.
+ *   2. If the minor version is not consistent, this file might be missing some new configurations, which will be set to
+ *      default values. It is recommended to replace it with the file from the library.
+ *   3. Even if the patch version is not consistent, it will not affect normal functionality.
+ *
+ */
+#define ESP_PANEL_BOARD_CUSTOM_FILE_VERSION_MAJOR 0
+#define ESP_PANEL_BOARD_CUSTOM_FILE_VERSION_MINOR 1
+#define ESP_PANEL_BOARD_CUSTOM_FILE_VERSION_PATCH 1
 
 #endif /* ESP_PANEL_USE_CUSTOM_BOARD */
 

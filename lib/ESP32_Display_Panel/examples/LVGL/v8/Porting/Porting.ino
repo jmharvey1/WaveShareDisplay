@@ -46,7 +46,6 @@
 #include <ESP_Panel_Library.h>
 #include <lvgl.h>
 #include "lvgl_port_v8.h"
-#include <demos/lv_demos.h>
 
 /**
 /* To use the built-in examples and demos of LVGL uncomment the includes below respectively.
@@ -96,7 +95,7 @@ void setup()
      * Or try out a demo.
      * Don't forget to uncomment header and enable the demos in `lv_conf.h`. E.g. `LV_USE_DEMOS_WIDGETS`
      */
-    lv_demo_widgets();
+    // lv_demo_widgets();
     // lv_demo_benchmark();
     // lv_demo_music();
     // lv_demo_stress();

@@ -53,10 +53,9 @@ esp_err_t esp_lcd_touch_exit_sleep(esp_lcd_touch_handle_t tp)
 esp_err_t esp_lcd_touch_read_data(esp_lcd_touch_handle_t tp)
 {
     assert(tp != NULL);
-    //printf("JMH2 esp_lcd_touch_read_data tp: %d\n", (int)tp);
     assert(tp->read_data != NULL);
-    //printf("JMH2 tp->read_data != NULL\n");
-    return tp->read_data(tp); //method found in ??.
+
+    return tp->read_data(tp);
 }
 
 bool esp_lcd_touch_get_coordinates(esp_lcd_touch_handle_t tp, uint16_t *x, uint16_t *y, uint16_t *strength, uint8_t *point_num, uint8_t max_point_num)

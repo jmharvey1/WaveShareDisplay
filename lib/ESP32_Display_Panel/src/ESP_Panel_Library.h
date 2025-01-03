@@ -7,8 +7,10 @@
 
 /* Drivers */
 #include "ESP_Panel_Conf_Internal.h"
+#include "ESP_Panel_Board_Internal.h"
 #include "ESP_PanelLog.h"
 #include "ESP_PanelTypes.h"
+#include "ESP_PanelVersions.h"
 
 /* Host */
 #include "host/ESP_PanelHost.h"
@@ -40,11 +42,16 @@
 #include "touch/FT5x06.h"
 #include "touch/GT1151.h"
 #include "touch/GT911.h"
+#include "touch/ST1633.h"
 #include "touch/ST7123.h"
 #include "touch/TT21100.h"
+#include "touch/XPT2046.h"
 
 /* Backlight */
 #include "backlight/ESP_PanelBacklight.h"
+
+/* 3rd-party Libraries */
+#include "ESP_IOExpander_Library.h"
 
 /* Panel */
 #include "ESP_Panel.h"

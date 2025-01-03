@@ -20,7 +20,8 @@ extern "C" {
 #endif
 
 #if LV_USE_DEMO_BENCHMARK
-#include "lv_demo_benchmark.h"
+//#include "../.pio/libdeps/esp32-s3-devkitc-1/lvgl/demos/benchmark/lv_demo_benchmark.h"
+#include "demos/benchmark/lv_demo_benchmark.h"
 #endif
 
 #if LV_USE_DEMO_STRESS

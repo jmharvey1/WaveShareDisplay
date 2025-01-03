@@ -1,15 +1,8 @@
 /**
  * # LVGL Porting Example
  *
- * SPDX-License-Identifier: Apache-2.0
- * JMH 20240626
- * This file was modified to the demo button example code & a version of demo widgets
- * demo that ships with the Waveshare board.
- * 
  * The example demonstrates how to port LVGL (v8.3.x). And for RGB LCD, it can enable the avoid tearing fucntion.
  *
- * important note: in lv_conf.h set #define LV_TICK_CUSTOM 1
- * 
  * ## How to Use
  *
  * To use this example, please firstly install the following dependent libraries:
@@ -49,35 +42,27 @@
  *
  */
 
+#include <Arduino.h>
 #include <ESP_Panel_Library.h>
 #include <lvgl.h>
-#include <lv_conf.h>
-#include <lvgl_port_v8.h>
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
-#include "freertos/semphr.h"
-#include "freertos/queue.h"
-#include "lv_demo_widgets.h"
-#include "lv_example_widgets.h"  //needed to run button code
+#include "lvgl_port_v8.h"
+#include <demos/lv_demos.h>
 
+/**
+/* To use the built-in examples and demos of LVGL uncomment the includes below respectively.
+ * You also need to copy `lvgl/examples` to `lvgl/src/examples`. Similarly for the demos `lvgl/demos` to `lvgl/src/demos`.
+ */
+// #include <demos/lv_demos.h>
+// #include <examples/lv_examples.h>
 
-
-esp_err_t i2c_acquire_bus_handle(int port_num, void *i2c_new_bus, int mode)
+void setup()
 {
-    printf("i2c_acquire_bus info: port_num %d", port_num);
-    return ESP_OK;   
-}
-extern "C"
-{
-  void app_main();
-}
+    String title = "LVGL porting example";
 
-void app_main() 
-{
-    //String title = "LVGL porting example";
-    std::string title = "LVGL porting example";
-    printf("LVGL porting example start\n");
-    printf("Initialize panel device\n");
+    Serial.begin(115200);
+    Serial.println(title + " start");
+
+    Serial.println("Initialize panel device");
     ESP_Panel *panel = new ESP_Panel();
     panel->init();
 #if LVGL_PORT_AVOID_TEAR
@@ -88,24 +73,24 @@ void app_main()
 #endif
     panel->begin();
 
-    printf("Initialize LVGL\n");
+    Serial.println("Initialize LVGL");
     lvgl_port_init(panel->getLcd(), panel->getTouch());
 
-    printf("Create UI\n");
+    Serial.println("Create UI");
     /* Lock the mutex due to the LVGL APIs are not thread-safe */
     lvgl_port_lock(-1);
 
     /* Create a simple label */
-    // lv_obj_t *label = lv_label_create(lv_scr_act());
-    // lv_label_set_text(label, title.c_str());
-    // lv_obj_align(label, LV_ALIGN_CENTER, 0, 0);
+    lv_obj_t *label = lv_label_create(lv_scr_act());
+    lv_label_set_text(label, title.c_str());
+    lv_obj_align(label, LV_ALIGN_CENTER, 0, 0);
 
     /**
      * Try an example. Don't forget to uncomment header.
      * See all the examples online: https://docs.lvgl.io/master/examples.html
      * source codes: https://github.com/lvgl/lvgl/tree/e7f88efa5853128bf871dde335c0ca8da9eb7731/examples
      */
-    // lv_example_btn_1();
+    //  lv_example_btn_1();
 
     /**
      * Or try out a demo.
@@ -115,16 +100,15 @@ void app_main()
     // lv_demo_benchmark();
     // lv_demo_music();
     // lv_demo_stress();
-    //Serial.println(title + " end");
-    printf("\nLVGL porting example Setup Complete\n\n");
+
     /* Release the mutex */
     lvgl_port_unlock();
-    int cnt = 0;
-    while(true)
-    {   
-        printf("IDLE loop\n");
-        vTaskDelay(pdMS_TO_TICKS(250));
-    }
+
+    Serial.println(title + " end");
 }
 
-
+void loop()
+{
+    Serial.println("IDLE loop");
+    delay(1000);
+}

@@ -1,5 +1,5 @@
-//#include "../../lv_examples.h"
-#include "lv_examples.h"
+#include "examples/lv_examples.h"
+//#include "lv_examples.h"
 #if LV_USE_TEXTAREA && LV_USE_KEYBOARD && LV_BUILD_EXAMPLES
 
 static void ta_event_cb(lv_event_t * e);
