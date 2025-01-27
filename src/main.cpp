@@ -96,9 +96,9 @@ void app_main()
     lvgl_port_lock(-1);
 
     /* Create a simple label */
-    // lv_obj_t *label = lv_label_create(lv_scr_act());
-    // lv_label_set_text(label, title.c_str());
-    // lv_obj_align(label, LV_ALIGN_CENTER, 0, 0);
+    //lv_obj_t *label = lv_label_create(lv_scr_act());
+    //lv_label_set_text(label, title.c_str());
+    //lv_obj_align(label, LV_ALIGN_CENTER, 0, 0);
 
     /**
      * Try an example. Don't forget to uncomment header.
