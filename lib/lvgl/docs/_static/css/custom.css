@@ -131,3 +131,28 @@ dl.cpp.unexpanded dd {
 .expanded .lv-api-expansion-button::before {
     content: "\f0d7 \00a0";
 }
+
+.wy-nav-content{
+    padding: 1.618em 3.236em;
+    height: 100%;
+    max-width: 1920px;
+    margin: auto
+}
+
+div.body {
+    min-width: 360px;
+    max-width: 1920px;
+}
+
+.cpp-expr {
+  font-family: SFMono-Regular,Menlo,Monaco,Consolas,Liberation Mono,Courier New,Courier,monospace;
+  color: #e74c3c;
+  padding: 2px 5px;
+  border: 1px solid #e1e4e5;
+  font-size: 75%;
+}
+
+/* This replaces a color present in `pygments.css` which is used to highlight
+ * function names.  It is too dark for DARK mode, and nearly black in LIGHT mode so it is
+ * difficult to tell that it is even highlighted.  This color override remedies both. */
+.highlight .nf { color: #2648ee } /* Name.Function */

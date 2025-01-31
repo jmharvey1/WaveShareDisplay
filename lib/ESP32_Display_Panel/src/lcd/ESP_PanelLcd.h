@@ -318,17 +318,6 @@ public:
     bool colorBarTest(uint16_t width, uint16_t height);
 
     /**
-     * @brief Draws full-screen colors
-     *
-     * @param width  The width of the color bar
-     * @param height The height of the color bar
-     *
-     * @return true if success, otherwise false
-     */
-    bool colorFill(uint16_t width, uint16_t height, uint16_t color);
-
-
-    /**
      * @brief Get the bits of pixel color
      *
      * @return

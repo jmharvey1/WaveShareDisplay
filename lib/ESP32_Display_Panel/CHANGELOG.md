@@ -1,56 +1,5 @@
 # ChangeLog
 
-## v0.1.4 - 2024-06-17
-
-### Enhancements:
-
-* feat(docs): add resolution column in board instructions by @lboue (#51)
-
-### Bugfixes:
-
-* fix(conf): fix error when include inside file (#52)
-* fix(docs): switch M5Stack doc links to english by @lboue (#50)
-* fix(board): fix m5stack coreS3 power issue (#54)
-
-## v0.1.3 - 2024-06-14
-
-### Enhancements:
-
-* feat(board): add add new board M5CORE2 by @MacChu0315-Espressif (#40)
-* feat(board): add add new board M5DIAL by @MacChu0315-Espressif (#41)
-* feat(board): add add new board M5CORES3 by @MacChu0315-Espressif (#45)
-* feat(example): add support for PlatformIO by @isthaison (#37)
-
-### Bugfixes:
-
-* fix(version): fix version mismatch
-* fix(docs): update files related to version and board M5CORE2
-
-## v0.1.2 - 2024-06-01
-
-### Enhancements:
-
-* feat(config): add version control for all configuration files by @lzw655 (#32)
-* feat(touch): add i2c st1633 by @lzw655 (#22)
-* feat(pre-commit): support to check file versions
-
-### Bugfixes:
-
-* fix(docs): fix broken links in 'Panel Test Example' README by @lboue (#27)
-* fix(config): fix wrong header order by @lzw655 (#35)
-
-## v0.1.1 - 2024-05-16
-
-### Enhancements:
-
-* feat(touch): add spi xpt2046 by @Lzw655 (#21)
-* feat(config): add new IO expander CH422G
-
-### Bugfixes:
-
-* fix some typo by @Franck78 (#16, #17)
-* fix(docs): add more details on the version by @lboue (#23)
-
 ## v0.1.0 - 2024-03-07
 
 ### Breaking changes:

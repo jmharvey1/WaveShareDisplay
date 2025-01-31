@@ -32,7 +32,7 @@ ESP_PanelLcd_GC9A01::~ESP_PanelLcd_GC9A01()
     }
 
 end:
-    ESP_LOGD(TAG, "Destroyed");
+    ESP_LOGD(TAG, "Destory");
 }
 
 bool ESP_PanelLcd_GC9A01::init(void)

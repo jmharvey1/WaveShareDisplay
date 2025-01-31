@@ -6,6 +6,7 @@ ESP32-S3 7inch Capacitive Touch Display Development Board, ESP32 With Display, 8
 ___
 
 This is VS Code/PlatformIO project, Using framework-espidf @ 3.50201.240515 (5.2.1). For the Waveshare ESP32S3-Touch-LCD-7 development board.
+The grahpics package used here is LVGL v9.3.0
 In its current state, it runs on my setup. But I have modified at least one of the ESPIDF component files. Namely, the .platformio/packages/framework-espidf/components/driver/i2c/i2c_master.c file was modified by adding the folowing entry:
 ESP_RETURN_ON_ERROR(s_i2c_asynchronous_transaction(i2c_dev, i2c_ops, DIM(i2c_ops), xfer_timeout_ms), TAG, "I2C transaction failed");
         /*JMH ADD2*/

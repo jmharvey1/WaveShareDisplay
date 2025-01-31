@@ -39,8 +39,6 @@
 /**
  * If set to 1, the bus will skip to initialize the corresponding host. Users need to initialize the host in advance.
  * It is useful if other devices use the same host. Please ensure that the host is initialized only once.
- *
- * Set to 1 if only the RGB interface is used without the 3-wire SPI interface,
  */
 #define ESP_PANEL_LCD_BUS_SKIP_INIT_HOST    (0)     // 0/1
 /**
@@ -214,9 +212,7 @@
  *      - CST816S
  *      - FT5x06
  *      - GT911, GT1151
- *      - ST1633, ST7123
  *      - TT21100
- *      - XPT2046
  */
 #define ESP_PANEL_TOUCH_NAME        TT21100
 
@@ -233,7 +229,7 @@
 /**
  * Touch panel bus type. Choose one of the following:
  *      - ESP_PANEL_BUS_TYPE_I2C
- *      - ESP_PANEL_BUS_TYPE_SPI
+ *      - ESP_PANEL_BUS_TYPE_SPI (not ready)
  */
 #define ESP_PANEL_TOUCH_BUS_TYPE            (ESP_PANEL_BUS_TYPE_I2C)
 /* Touch panel bus parameters */
@@ -249,18 +245,6 @@
     #define ESP_PANEL_TOUCH_I2C_IO_SCL      (18)
     #define ESP_PANEL_TOUCH_I2C_IO_SDA      (8)
 #endif
-
-#elif ESP_PANEL_TOUCH_BUS_TYPE == ESP_PANEL_BUS_TYPE_SPI
-
-    #define ESP_PANEL_TOUCH_BUS_HOST_ID         (1)     // Typically set to 1
-    #define ESP_PANEL_TOUCH_SPI_IO_CS           (5)
-#if !ESP_PANEL_TOUCH_BUS_SKIP_INIT_HOST
-    #define ESP_PANEL_TOUCH_SPI_IO_SCK          (7)
-    #define ESP_PANEL_TOUCH_SPI_IO_MOSI         (6)
-    #define ESP_PANEL_TOUCH_SPI_IO_MISO         (9)
-#endif
-    #define ESP_PANEL_TOUCH_SPI_CLK_HZ          (1 * 1000 * 1000)
-                                                        // Should be an integer divisor of 80M, typically set to 1M
 
 #else
 
@@ -307,7 +291,6 @@
 #if ESP_PANEL_USE_EXPANDER
 /**
  * IO expander name. Choose one of the following:
- *      - CH422G
  *      - HT8574
  *      - TCA95xx_8bit
  *      - TCA95xx_16bit
@@ -321,9 +304,7 @@
  */
 #define ESP_PANEL_EXPANDER_SKIP_INIT_HOST       (0)     // 0/1
 /* IO expander parameters */
-#define ESP_PANEL_EXPANDER_I2C_ADDRESS          (0x20)  // The actual I2C address. Even for the same model of IC,
-                                                        // the I2C address may be different, and confirmation based on
-                                                        // the actual hardware connection is required
+#define ESP_PANEL_EXPANDER_I2C_ADDRESS          (0x20)
 #if !ESP_PANEL_EXPANDER_SKIP_INIT_HOST
     #define ESP_PANEL_EXPANDER_HOST_ID          (0)     // Typically set to 0
     #define ESP_PANEL_EXPANDER_I2C_CLK_HZ       (400 * 1000)
@@ -348,21 +329,6 @@
 // #define ESP_PANEL_BEGIN_BACKLIGHT_START_FUNCTION( panel )
 // #define ESP_PANEL_BEGIN_BACKLIGHT_END_FUNCTION( panel )
 // #define ESP_PANEL_BEGIN_END_FUNCTION( panel )
-
-/**
- * Do not change the following versions, they are used to check if the configurations in this file are compatible with
- * the current version of `ESP_Panel_Board_Custom.h` in the library. The detailed rules are as follows:
- *
- *   1. If the major version is not consistent, then the configurations in this file are incompatible with the library
- *      and must be replaced with the file from the library.
- *   2. If the minor version is not consistent, this file might be missing some new configurations, which will be set to
- *      default values. It is recommended to replace it with the file from the library.
- *   3. Even if the patch version is not consistent, it will not affect normal functionality.
- *
- */
-#define ESP_PANEL_BOARD_CUSTOM_FILE_VERSION_MAJOR 0
-#define ESP_PANEL_BOARD_CUSTOM_FILE_VERSION_MINOR 1
-#define ESP_PANEL_BOARD_CUSTOM_FILE_VERSION_PATCH 1
 
 #endif /* ESP_PANEL_USE_CUSTOM_BOARD */
 

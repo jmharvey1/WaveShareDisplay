@@ -1,4 +1,5 @@
 #include "examples/lv_examples.h"
+#include <string.h> //JMH Added 20250128
 //#include "lv_examples.h"
 #if LV_USE_TEXTAREA && LV_BUILD_EXAMPLES
 
@@ -14,7 +15,7 @@ static void btnm_event_handler(lv_event_t * e)
     lv_obj_t * ta = lv_event_get_user_data(e);
     const char * txt = lv_btnmatrix_get_btn_text(obj, lv_btnmatrix_get_selected_btn(obj));
 
-    if(strcmp(txt, LV_SYMBOL_BACKSPACE) == 0) lv_textarea_del_char(ta);
+    if(strcmp(txt, LV_SYMBOL_BACKSPACE) == 0) lv_textarea_delete_char(ta);//lv_textarea_delete_char(lv_obj_t * obj);
     else if(strcmp(txt, LV_SYMBOL_NEW_LINE) == 0) lv_event_send(ta, LV_EVENT_READY, NULL);
     else lv_textarea_add_text(ta, txt);
 

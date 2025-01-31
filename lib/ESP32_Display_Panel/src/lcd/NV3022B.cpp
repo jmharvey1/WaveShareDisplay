@@ -32,7 +32,7 @@ ESP_PanelLcd_NV3022B::~ESP_PanelLcd_NV3022B()
     }
 
 end:
-    ESP_LOGD(TAG, "Destroyed");
+    ESP_LOGD(TAG, "Destory");
 }
 
 bool ESP_PanelLcd_NV3022B::init(void)

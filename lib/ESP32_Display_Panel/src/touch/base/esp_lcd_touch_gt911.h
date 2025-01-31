@@ -58,7 +58,8 @@ esp_err_t esp_lcd_touch_new_i2c_gt911(const esp_lcd_panel_io_handle_t io, const 
         .flags =                            \
         {                                   \
             .disable_control_phase = 1,     \
-        }                                   \
+        },                                  \
+        .scl_speed_hz = 400000              \
     }
 
 #ifdef __cplusplus

@@ -36,7 +36,7 @@ ESP_PanelLcd_SH8601::~ESP_PanelLcd_SH8601()
     }
 
 end:
-    ESP_LOGD(TAG, "Destroyed");
+    ESP_LOGD(TAG, "Destory");
 }
 
 bool ESP_PanelLcd_SH8601::init(void)

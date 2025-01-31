@@ -33,7 +33,7 @@ ESP_PanelTouch_FT5x06::~ESP_PanelTouch_FT5x06()
     }
 
 end:
-    ESP_LOGD(TAG, "Destroyed");
+    ESP_LOGD(TAG, "Destory");
 }
 
 bool ESP_PanelTouch_FT5x06::begin(void)

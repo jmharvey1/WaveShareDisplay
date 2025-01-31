@@ -4,12 +4,15 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-#include "ESP_Panel_Library.h"
+#include "ESP_Panel_Conf_Internal.h"
 
 #ifdef ESP_PANEL_USE_BOARD
 #include <iostream>
 #include <memory>
+#include "ESP_PanelLog.h"
 #include "driver/gpio.h"
+#include <ESP_IOExpander_Library.h>
+#include "ESP_Panel_Library.h"
 
 using namespace std;
 
@@ -23,12 +26,22 @@ using namespace std;
  * Macros for creating panel bus
  *
  */
+/*JMH commented out & modified the following '#define', to avoid compile error.
 #define _CREATE_BUS_INIT_HOST(name, host_config, io_config, host_id) \
                                                     make_shared<ESP_PanelBus_##name>(host_config, io_config, host_id)
+*/
+#define _CREATE_BUS_INIT_HOST(name, host_config, io_config, host_id) \
+                                                    make_shared<ESP_PanelBus_I2C>(host_config, io_config, host_id)
 #define CREATE_BUS_INIT_HOST(name, host_config, io_config, host_id) \
                                                         _CREATE_BUS_INIT_HOST(name, host_config, io_config, host_id)
+/*JMH modified to avoid compile error*/
 #define _CREATE_BUS_SKIP_HOST(name, io_config, host_id) make_shared<ESP_PanelBus_##name>(io_config, host_id)
 #define CREATE_BUS_SKIP_HOST(name, io_config, host_id)  _CREATE_BUS_SKIP_HOST(name, io_config, host_id)
+
+// #define _CREATE_BUS_JMH_HOST(name, i2c_mst_config, io_config, host_id) make_shared<ESP_PanelBus_##name>(i2c_mst_config, io_config, host_id)  //i2c_mst_config, io_config,
+// #define CREATE_BUS_JMH_HOST(name, i2c_mst_config, io_config, host_id)  _CREATE_BUS_JMH_HOST(name, i2c_mst_config, io_config, host_id) //, i2c_mst_config, io_config
+#define _CREATE_BUS_JMH_HOST(name) make_shared<ESP_PanelBus_##name>()  //i2c_mst_config, io_config,
+#define CREATE_BUS_JMH_HOST(name)  _CREATE_BUS_JMH_HOST(name)
 /**
  * Macros for configuration of panel IO
  *
@@ -58,8 +71,8 @@ ESP_Panel::ESP_Panel():
     _is_initialed(false),
     _use_external_expander(false),
     _lcd_bus_ptr(nullptr),
-    _lcd_ptr(nullptr),
     _touch_bus_ptr(nullptr),
+    _lcd_ptr(nullptr),
     _touch_ptr(nullptr),
     _backlight_ptr(nullptr),
     _expander_ptr(nullptr)
@@ -78,7 +91,7 @@ ESP_Panel::~ESP_Panel()
 
 end:
     ESP_PANEL_ENABLE_TAG_DEBUG_LOG();
-    ESP_LOGD(TAG, "Destroyed");
+    ESP_LOGD(TAG, "Destory");
 }
 
 void ESP_Panel::configExpander(ESP_IOExpander *expander)
@@ -101,7 +114,8 @@ bool ESP_Panel::init(void)
     ESP_PanelHost host;
     shared_ptr<ESP_PanelBus> lcd_bus_ptr = nullptr;
     shared_ptr<ESP_PanelLcd> lcd_ptr = nullptr;
-    shared_ptr<ESP_PanelBus> touch_bus_ptr = nullptr;
+    //shared_ptr<ESP_PanelBus> touch_bus_ptr = nullptr;
+    shared_ptr<ESP_PanelBus_I2C> touch_bus_ptr = nullptr;
     shared_ptr<ESP_PanelTouch> touch_ptr = nullptr;
     shared_ptr<ESP_IOExpander> expander_ptr = _expander_ptr;
     shared_ptr<ESP_PanelBacklight> backlight_ptr = nullptr;
@@ -288,9 +302,19 @@ bool ESP_Panel::init(void)
     };
 
     // LCD device configuration
+    // esp_lcd_panel_dev_config_t lcd_config = {
+    //     .reset_gpio_num = ESP_PANEL_LCD_IO_RST,
+    //     .rgb_ele_order = (lcd_rgb_element_order_t)ESP_PANEL_LCD_BGR_ORDER,
+    //     .data_endian = LCD_RGB_DATA_ENDIAN_BIG,
+    //     .bits_per_pixel = ESP_PANEL_LCD_COLOR_BITS,
+    //     .flags = {
+    //         .reset_active_high = ESP_PANEL_LCD_RST_LEVEL,
+    //     },
+    //     .vendor_config = &lcd_vendor_config,
+    // };
     esp_lcd_panel_dev_config_t lcd_config = {
         .reset_gpio_num = ESP_PANEL_LCD_IO_RST,
-        .rgb_ele_order = (lcd_rgb_element_order_t)ESP_PANEL_LCD_BGR_ORDER,
+        .rgb_ele_order = (lcd_color_rgb_endian_t)ESP_PANEL_LCD_BGR_ORDER,
         .data_endian = LCD_RGB_DATA_ENDIAN_BIG,
         .bits_per_pixel = ESP_PANEL_LCD_COLOR_BITS,
         .flags = {
@@ -310,8 +334,7 @@ bool ESP_Panel::init(void)
 #else
     /* For non-RGB LCD, should use `ADD_HOST()` to init host when `ESP_PANEL_LCD_BUS_SKIP_INIT_HOST` enabled */
 #if !ESP_PANEL_LCD_BUS_SKIP_INIT_HOST
-    ESP_PANEL_CHECK_FALSE_RET(ADD_HOST(ESP_PANEL_LCD_BUS_NAME, host, lcd_bus_host_config, ESP_PANEL_LCD_BUS_HOST),
-                              false, "Add host failed");
+    ADD_HOST(ESP_PANEL_LCD_BUS_NAME, host, lcd_bus_host_config, ESP_PANEL_LCD_BUS_HOST);
 #endif
     lcd_bus_ptr = CREATE_BUS_SKIP_HOST(ESP_PANEL_LCD_BUS_NAME, lcd_panel_io_config, ESP_PANEL_LCD_BUS_HOST);
 #endif
@@ -324,51 +347,40 @@ bool ESP_Panel::init(void)
 #endif /* ESP_PANEL_USE_LCD */
 
     /* Touch related configuration */
-#if ESP_PANEL_USE_TOUCH
+#if  ESP_PANEL_USE_TOUCH
     ESP_LOGD(TAG, "Use touch");
 #if ESP_PANEL_TOUCH_BUS_TYPE == ESP_PANEL_BUS_TYPE_I2C
 
     ESP_LOGD(TAG, "Use I2C bus");
     // I2C bus
 #if !ESP_PANEL_TOUCH_BUS_SKIP_INIT_HOST
-    i2c_config_t touch_host_config = {
-        .mode = I2C_MODE_MASTER,
-        .sda_io_num = ESP_PANEL_TOUCH_I2C_IO_SDA,
-        .scl_io_num = ESP_PANEL_TOUCH_I2C_IO_SCL,
-        .sda_pullup_en = ESP_PANEL_TOUCH_I2C_SDA_PULLUP,
-        .scl_pullup_en = ESP_PANEL_TOUCH_I2C_SCL_PULLUP,
-        .master = {
-            .clk_speed = ESP_PANEL_TOUCH_I2C_CLK_HZ,
-        },
-        .clk_flags = I2C_SCLK_SRC_FLAG_FOR_NOMAL,
+/*JMH legacy I2C call. Replaced by current I2C configuration scheme*/
+    // i2c_config_t lcd_touch_host_config = {
+    //     .mode = I2C_MODE_MASTER,
+    //     .sda_io_num = ESP_PANEL_TOUCH_I2C_IO_SDA,
+    //     .scl_io_num = ESP_PANEL_TOUCH_I2C_IO_SCL,
+    //     .sda_pullup_en = ESP_PANEL_TOUCH_I2C_SDA_PULLUP,
+    //     .scl_pullup_en = ESP_PANEL_TOUCH_I2C_SCL_PULLUP,
+    //     .master = {
+    //         .clk_speed = ESP_PANEL_TOUCH_I2C_CLK_HZ,
+    //     },
+    //     .clk_flags = I2C_SCLK_SRC_FLAG_FOR_NOMAL,
+    // };
+    i2c_master_bus_config_t i2c_mst_config = {
+        .i2c_port = I2C_NUM_0,
+        .sda_io_num = (gpio_num_t)ESP_PANEL_TOUCH_I2C_IO_SDA,
+        .scl_io_num = (gpio_num_t)ESP_PANEL_TOUCH_I2C_IO_SCL,
+        .clk_source = I2C_CLK_SRC_DEFAULT,
+        .glitch_ignore_cnt = 7,
+        .intr_priority = 0,                                         \
+        .trans_queue_depth = 64,
+        .flags ={
+            .enable_internal_pullup = true,
+        },    
     };
 #endif
     // I2C touch panel IO
-    esp_lcd_panel_io_i2c_config_t touch_panel_io_config = ESP_PANEL_TOUCH_I2C_PANEL_IO_CONFIG(ESP_PANEL_TOUCH_NAME);
-
-#elif ESP_PANEL_TOUCH_BUS_TYPE == ESP_PANEL_BUS_TYPE_SPI
-
-    ESP_LOGD(TAG, "Use SPI bus");
-    // SPI bus
-#if !ESP_PANEL_TOUCH_BUS_SKIP_INIT_HOST
-    spi_bus_config_t touch_host_config = {
-        .mosi_io_num = ESP_PANEL_TOUCH_SPI_IO_MOSI,
-        .miso_io_num = ESP_PANEL_TOUCH_SPI_IO_MISO,
-        .sclk_io_num = ESP_PANEL_TOUCH_SPI_IO_SCK,
-        .quadwp_io_num = GPIO_NUM_NC,
-        .quadhd_io_num = GPIO_NUM_NC,
-        .data4_io_num = GPIO_NUM_NC,
-        .data5_io_num = GPIO_NUM_NC,
-        .data6_io_num = GPIO_NUM_NC,
-        .data7_io_num = GPIO_NUM_NC,
-        .max_transfer_sz = ESP_PANEL_HOST_SPI_MAX_TRANSFER_SIZE,
-        .flags = SPICOMMON_BUSFLAG_MASTER,
-        .intr_flags = 0,
-    };
-#endif
-    // SPI panel IO
-    esp_lcd_panel_io_spi_config_t touch_panel_io_config = ESP_PANEL_TOUCH_SPI_PANEL_IO_CONFIG(ESP_PANEL_TOUCH_NAME,
-            ESP_PANEL_TOUCH_SPI_IO_CS);
+    esp_lcd_panel_io_i2c_config_t lcd_touch_panel_io_config = ESP_PANEL_TOUCH_I2C_PANEL_IO_CONFIG(ESP_PANEL_TOUCH_NAME);
 
 #else
 
@@ -397,12 +409,13 @@ bool ESP_Panel::init(void)
     };
 
 #if !ESP_PANEL_TOUCH_BUS_SKIP_INIT_HOST
-    ESP_PANEL_CHECK_FALSE_RET(ADD_HOST(ESP_PANEL_TOUCH_BUS_NAME, host, touch_host_config, ESP_PANEL_TOUCH_BUS_HOST),
-                              false, "Add host failed");
+    /*JMH rewrote the following ADDHOST call*/
+    //ADD_HOST(ESP_PANEL_TOUCH_BUS_NAME, host, lcd_touch_host_config, ESP_PANEL_TOUCH_BUS_HOST);
+    ADD_HOST(ESP_PANEL_TOUCH_BUS_NAME, host, lcd_touch_config, ESP_PANEL_TOUCH_BUS_HOST);
 #endif
 
     ESP_LOGD(TAG, "Create touch bus");
-    touch_bus_ptr = CREATE_BUS_SKIP_HOST(ESP_PANEL_TOUCH_BUS_NAME, touch_panel_io_config, ESP_PANEL_TOUCH_BUS_HOST);
+    touch_bus_ptr = make_shared<ESP_PanelBus_I2C>(i2c_mst_config, lcd_touch_panel_io_config, ESP_PANEL_TOUCH_BUS_HOST);
     ESP_PANEL_CHECK_NULL_RET(touch_bus_ptr, false, "Create touch bus failed");
 
     ESP_LOGD(TAG, "Create touch device");
@@ -434,8 +447,7 @@ bool ESP_Panel::init(void)
             },
             .clk_flags = I2C_SCLK_SRC_FLAG_FOR_NOMAL,
         };
-        ESP_PANEL_CHECK_FALSE_RET(ADD_HOST(I2C, host, expander_host_config, ESP_PANEL_TOUCH_BUS_HOST), false,
-                                  "Add host failed");
+        ADD_HOST(I2C, host, expander_host_config, ESP_PANEL_TOUCH_BUS_HOST);
 #endif
         expander_ptr = CREATE_EXPANDER(ESP_PANEL_EXPANDER_NAME, ESP_PANEL_EXPANDER_HOST, ESP_PANEL_EXPANDER_I2C_ADDRESS);
     }

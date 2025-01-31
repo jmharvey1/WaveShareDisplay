@@ -22,7 +22,7 @@ ESP_PanelBus::ESP_PanelBus(int host_id, uint8_t bus_type, bool host_need_init):
 bool ESP_PanelBus::readRegisterData(uint32_t address, void *data, uint32_t data_size)
 {
     ESP_PANEL_CHECK_ERR_RET(esp_lcd_panel_io_rx_param(handle, address, data, data_size), false,
-                            "Read register(0x%x) failed", address);
+                            "Read register(0x%x) failed", (uint16_t)address); //JMH 20240618 added (uint16_t) to kill compile error
 
     return true;
 }
@@ -30,7 +30,7 @@ bool ESP_PanelBus::readRegisterData(uint32_t address, void *data, uint32_t data_
 bool ESP_PanelBus::writeRegisterData(uint32_t address, const void *data, uint32_t data_size)
 {
     ESP_PANEL_CHECK_ERR_RET(esp_lcd_panel_io_tx_param(handle, address, data, data_size), false,
-                            "Read register(0x%x) failed", address);
+                            "Read register(0x%x) failed", (uint16_t)address); //JMH
 
     return true;
 }
@@ -38,7 +38,7 @@ bool ESP_PanelBus::writeRegisterData(uint32_t address, const void *data, uint32_
 bool ESP_PanelBus::writeColorData(uint32_t address, const void *color, uint32_t color_size)
 {
     ESP_PANEL_CHECK_ERR_RET(esp_lcd_panel_io_tx_param(handle, address, color, color_size), false,
-                            "Read register(0x%x) failed", address);
+                            "Read register(0x%x) failed", (uint16_t)address); //JMH
 
     return true;
 }

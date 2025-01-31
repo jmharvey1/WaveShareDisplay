@@ -317,8 +317,7 @@ bool ESP_PanelLcd::colorBarTest(uint16_t width, uint16_t height)
     ESP_PANEL_CHECK_FALSE_RET(bits_per_piexl > 0, false, "Invalid color bits");
 
     int bytes_per_piexl = bits_per_piexl / 8;
-    // int line_per_bar = height / bits_per_piexl;
-    int line_per_bar = (height % bits_per_piexl > 0) ? (height / bits_per_piexl + 1):(height / bits_per_piexl); 
+    int line_per_bar = height / bits_per_piexl;
     int line_count = 0;
     uint8_t *single_bar_buf = NULL;
     int res_line_count = 0;
@@ -359,45 +358,6 @@ bool ESP_PanelLcd::colorBarTest(uint16_t width, uint16_t height)
 
         memset(single_bar_buf, 0xff, res_line_count * width * bytes_per_piexl);
         ret = drawBitmapWaitUntilFinish(0, line_count, width, res_line_count, single_bar_buf);
-        if (ret != true) {
-            ESP_LOGE(TAG, "Draw bitmap failed");
-            goto end;
-        }
-    }
-
-end:
-    delete[] single_bar_buf;
-
-    return ret;
-}
-
-bool ESP_PanelLcd::colorFill(uint16_t width, uint16_t height, uint16_t color)
-{
-    ESP_PANEL_CHECK_NULL_RET(bus, false, "Invalid bus");
-
-    int bits_per_piexl = getColorBits();
-    ESP_PANEL_CHECK_FALSE_RET(bits_per_piexl > 0, false, "Invalid color bits");
-
-    int bytes_per_piexl = bits_per_piexl / 8;
-    uint8_t *single_bar_buf = NULL;
-
-    /* Malloc memory for a single color bar */
-    try {
-        single_bar_buf = new uint8_t[height * width * bytes_per_piexl];
-    } catch (std::bad_alloc &e) {
-        ESP_PANEL_CHECK_FALSE_RET(false, false, "Malloc color buffer failed");
-    }
-
-    bool ret = true;
-
-    /* Draws full-screen colors */
-    for (int j = 0; j < bits_per_piexl; j++) {
-        for (int i = 0; i < height * width; i++) {
-            for (int k = 0; k < bytes_per_piexl; k++) {
-                single_bar_buf[i * bytes_per_piexl + k] = (color >> (k * 8)) & 0xff;
-            }  
-        }
-        ret = drawBitmap(0, 0, width, height, single_bar_buf);
         if (ret != true) {
             ESP_LOGE(TAG, "Draw bitmap failed");
             goto end;

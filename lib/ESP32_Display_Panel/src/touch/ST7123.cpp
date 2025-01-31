@@ -33,7 +33,7 @@ ESP_PanelTouch_ST7123::~ESP_PanelTouch_ST7123()
     }
 
 end:
-    ESP_LOGD(TAG, "Destroyed");
+    ESP_LOGD(TAG, "Destory");
 }
 
 bool ESP_PanelTouch_ST7123::begin(void)

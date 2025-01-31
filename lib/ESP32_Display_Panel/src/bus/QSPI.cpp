@@ -60,7 +60,7 @@ ESP_PanelBus_QSPI::~ESP_PanelBus_QSPI()
     }
 
 end:
-    ESP_LOGD(TAG, "Destroyed");
+    ESP_LOGD(TAG, "Destory");
 }
 
 void ESP_PanelBus_QSPI::configQspiMode(uint8_t mode)

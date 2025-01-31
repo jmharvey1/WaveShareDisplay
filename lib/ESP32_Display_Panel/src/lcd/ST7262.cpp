@@ -45,7 +45,7 @@ ESP_PanelLcd_ST7262::~ESP_PanelLcd_ST7262()
     }
 
 end:
-    ESP_LOGD(TAG, "Destroyed");
+    ESP_LOGD(TAG, "Destory");
 }
 
 bool ESP_PanelLcd_ST7262::init(void)

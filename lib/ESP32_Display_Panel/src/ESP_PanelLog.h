@@ -17,7 +17,7 @@
 #if ESP_PANEL_ENABLE_LOG
 #define ESP_PANEL_ENABLE_TAG_DEBUG_LOG() do {   \
         esp_log_level_set(TAG, ESP_LOG_DEBUG);  \
-    } while(0)
+    } while(0) //ESP_LOG_DEBUG, ESP_LOG_VERBOSE, ESP_LOG_INFO
 #else
 #define ESP_PANEL_ENABLE_TAG_DEBUG_LOG() do {} while(0)
 #endif
@@ -28,7 +28,7 @@
 #define ESP_PANEL_CHECK_FALSE_RET(x, ...)   assert((x) != false)
 #else
 #if ESP_PANEL_ENABLE_LOG
-#define ESP_PANEL_ERROR_CHECK_LOG_FORMAT(err, format)     "[%s] %s(%u): " format, esp_err_to_name(err), __FUNCTION__, __LINE__
+#define ESP_PANEL_ERROR_CHECK_LOG_FORMAT(err, format)     "[%s] %s(%u): " format, esp_err_to_name(err), __FUNCTION__, (uint16_t)__LINE__
 #define ESP_PANEL_ERROR_CHECK_LOGE(tag, err, format, ...) ESP_LOGE(tag, ESP_PANEL_ERROR_CHECK_LOG_FORMAT(err, format), ##__VA_ARGS__)
 #define ESP_PANEL_OTHER_CHECK_LOG_FORMAT(format)      "%s(%u): " format, __FUNCTION__, __LINE__
 #define ESP_PANEL_OTHER_CHECK_LOGE(tag, format, ...)  ESP_LOGE(tag, ESP_PANEL_OTHER_CHECK_LOG_FORMAT(format), ##__VA_ARGS__)

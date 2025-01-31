@@ -35,7 +35,7 @@ ESP_PanelLcd_ST7701::~ESP_PanelLcd_ST7701()
     }
 
 end:
-    ESP_LOGD(TAG, "Destroyed");
+    ESP_LOGD(TAG, "Destory");
 }
 
 bool ESP_PanelLcd_ST7701::init(void)
