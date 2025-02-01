@@ -63,8 +63,6 @@ esp_lcd_touch_handle_t tp = NULL;
 static lv_display_t * disp;
 static esp_lcd_panel_handle_t display_handle = NULL;
 static esp_timer_handle_t lvgl_tick_timer;
-/*CW_Machine Code*/
-/*JMH ADD*/
 esp_lcd_touch_config_t lcd_touch_config = {
 	.x_max = MSGBX_LCD_H_RES,
 	.y_max = MSGBX_LCD_V_RES,
@@ -106,36 +104,7 @@ void lv_port_disp_init(void)
     disp = lv_display_create(MSGBX_LCD_H_RES, MSGBX_LCD_V_RES);
     assert(disp); // Ensure the display initialization was successful
     lv_display_set_flush_cb(disp, disp_flush);
-
-    // /* Example 1
-    //  * One buffer for partial rendering*/
-    // LV_ATTRIBUTE_MEM_ALIGN
-    // static uint8_t buf_1_1[MSGBX_LCD_H_RES * 10 * BYTE_PER_PIXEL];            /*A buffer for 10 rows*/
-    // lv_display_set_buffers(disp, buf_1_1, NULL, sizeof(buf_1_1), LV_DISPLAY_RENDER_MODE_PARTIAL);
-
-    // /* Example 2
-    //  * Two buffers for partial rendering
-    //  * In flush_cb DMA or similar hardware should be used to update the display in the background.*/
-    // LV_ATTRIBUTE_MEM_ALIGN
-    // static uint8_t buf_2_1[MSGBX_LCD_H_RES * 10 * BYTE_PER_PIXEL];
-
-    // LV_ATTRIBUTE_MEM_ALIGN
-    // static uint8_t buf_2_2[MSGBX_LCD_H_RES * 10 * BYTE_PER_PIXEL];
-    // lv_display_set_buffers(disp, buf_2_1, buf_2_2, sizeof(buf_2_1), LV_DISPLAY_RENDER_MODE_PARTIAL);
-
-    /* Example 3
-     * Two buffers screen sized buffer for double buffering.
-     * Both LV_DISPLAY_RENDER_MODE_DIRECT and LV_DISPLAY_RENDER_MODE_FULL works, see their comments
-     * lv_color_format_get_size(lv_display_get_color_format(disp))*/
-    // while(1){
-    // printf("BYTE_PER_PIXEL: %d; lv_display_get_color_format(disp): %d\n", BYTE_PER_PIXEL, lv_display_get_color_format(disp));
-    // }
-    // LV_ATTRIBUTE_MEM_ALIGN
-    // static uint8_t buf_3_1[(MSGBX_LCD_H_RES * MSGBX_LCD_V_RES * BYTE_PER_PIXEL)/10];
-    // LV_ATTRIBUTE_MEM_ALIGN
-    // static uint8_t buf_3_2[(MSGBX_LCD_H_RES * MSGBX_LCD_V_RES * BYTE_PER_PIXEL)/10];
-    // lv_display_set_buffers(disp, buf_3_1, buf_3_2, sizeof(buf_3_1), LV_DISPLAY_RENDER_MODE_DIRECT);
-    // initialize LVGL draw buffers
+   
     int buffer_size = (MSGBX_LCD_H_RES) * (MSGBX_LCD_V_RES);
     void *buf1 = NULL;                                                            // will be used by lvgl as a staging area (memory space) to create display images/maps before posting to display ST7262
     void *buf2 = NULL;                                                            // same as above, is the 2nd of two buffer spaces
@@ -144,47 +113,13 @@ void lv_port_disp_init(void)
     buf2 = heap_caps_malloc(buffer_size * sizeof(lv_color_t), MALLOC_CAP_SPIRAM); // MALLOC_CAP_DMA
     assert(buf2);
     lv_display_set_buffers(disp, buf1, buf2, buffer_size, LV_DISPLAY_RENDER_MODE_PARTIAL); // render_mode – LV_DISPLAY_RENDER_MODE_PARTIAL/DIRECT/FULL
-
-    /*link/Register touch input back to LVGL8*/
-    // assert(tp); // Ensure the touch panel handle is valid
-    // static lv_indev_drv_t indev_drv; // Static input device driver
-    // lv_indev_drv_init(&indev_drv); // Initialize the input device driver
-    // indev_drv.type = LV_INDEV_TYPE_POINTER; // Set the device type to pointer (touchpad)
-    // indev_drv.read_cb = lvgl_touch_cb; // Set the read callback function
-    // indev_drv.user_data = tp; // Set user data to the touch panel handle
-    // static lv_indev_t *indev = *lv_indev_drv_register(&indev_drv); // Register the input device driver
-    // ESP_LOGI(TAG, "indev_drv.read_timer %p  read_cb: %p", indev_drv.read_timer, indev_drv.read_cb);
-
+   
     /*Register a touchpad input device LVGL9*/
     indev_touchpad = lv_indev_create();
     lv_indev_set_type(indev_touchpad, LV_INDEV_TYPE_POINTER);
     lv_indev_set_read_cb(indev_touchpad, touchpad_read_cb);
     assert(indev_touchpad); // Ensure the input device initialization was successful
-                            /////////////////////////////////////////////////////////////////////////////////////
-    /*the followinng was originally found in:
-    lvgl_port_v8.cpp,
-    bool lvgl_port_init(ESP_PanelLcd *lcd, ESP_PanelTouch *tp)*/
-    // Record the initial rotation of the display
-    // lv_disp_set_rotation(disp, LV_DISP_ROT_NONE);
-    // if (indev_touchpad != nullptr)
-    // {assert(indev_touchpad);
-    /*JMH redundant already done & tested*/
-    // ESP_LOGD(TAG, "Initialize LVGL input driver");
-    // indev = indev_init(indev_touchpad);
-    // ESP_PANEL_CHECK_NULL_RET(indev, false, "Initialize LVGL input driver failed");
-
-    // #if LVGL_PORT_ROTATION_DEGREE == 90
-    //         tp->swapXY(!tp->getSwapXYFlag());
-    //         tp->mirrorY(!tp->getMirrorYFlag());
-    // #elif LVGL_PORT_ROTATION_DEGREE == 180
-    //         tp->mirrorX(!tp->getMirrorXFlag());
-    //         tp->mirrorY(!tp->getMirrorYFlag());
-    // #elif LVGL_PORT_ROTATION_DEGREE == 270
-    //         tp->swapXY(!tp->getSwapXYFlag());
-    //         tp->mirrorX(!tp->getMirrorYFlag());
-    // #endif
-    // }
-
+   
     ESP_LOGD(TAG, "Create mutex for LVGL");
     lvgl_mux = xSemaphoreCreateRecursiveMutex();
     assert(lvgl_mux);
@@ -196,8 +131,7 @@ void lv_port_disp_init(void)
                                              MSGBX_LVGL_TASK_PRIORITY, &lvgl_task_handle, core_id);
     if (ret != pdPASS)
         printf("Create LVGL task failed\n");
-    // ESP_PANEL_CHECK_FALSE_RET(ret == pdPASS, false, "Create LVGL task failed");
-
+    
 #if LVGL_PORT_AVOID_TEAR
     lcd->attachRefreshFinishCallback(onRgbVsyncCallback, (void *)lvgl_task_handle);
 #endif
@@ -243,7 +177,7 @@ static esp_err_t i2c_master_init(void)
 }
 ////////////////////////////////////////////////////////////////////
 
-/*Initialize your display and the required peripherals.*/
+/*Initialize display and the required peripherals.*/
 static void disp_init(void)
 {
     /*JMH code*/
@@ -350,7 +284,7 @@ static void disp_init(void)
     ESP_LOGI(TAG, "I2C Master initialized successfully");
 
     ESP_LOGI(TAG, "Initialize GT911 I2C touch sensor");
-    //esp_lcd_touch_handle_t tp = NULL;
+    
     esp_lcd_panel_io_handle_t tp_io_handle = NULL;
     esp_lcd_panel_io_i2c_config_t tp_io_config = ESP_LCD_TOUCH_IO_I2C_GT911_CONFIG(); // defined in esp_lcd_touch_gt911.h
 
@@ -373,31 +307,6 @@ static void disp_init(void)
     lvgl_semaphore = xSemaphoreCreateMutex();
     ESP_LOGI(TAG, "Initialize LVGL library");
     lv_init();
-    // void *buf1 = NULL; // will be used by lvgl as a staging area (memory space) to create display images/maps before posting to display ST7262
-    // void *buf2 = NULL; // same as above, is the 2nd of two buffer spaces
-
-    // ESP_LOGI(TAG, "Allocate separate LVGL draw buffers from PSRAM");
-    // int buffer_size = (MSGBX_LCD_H_RES) * (MSGBX_LCD_V_RES);
-    // /*JMH commented out & replaced w/ the following:
-    // Note: inspite of above config setting we are actually using two buffers*/
-    // // buf1 = heap_caps_malloc(MSGBX_LCD_H_RES * 100 * sizeof(lv_color_t), MALLOC_CAP_SPIRAM);
-    // buf1 = heap_caps_malloc(buffer_size * sizeof(lv_color_t), MALLOC_CAP_SPIRAM); // MALLOC_CAP_DMA
-    // assert(buf1);
-    // buf2 = heap_caps_malloc(buffer_size * sizeof(lv_color_t), MALLOC_CAP_SPIRAM); // MALLOC_CAP_DMA
-    // assert(buf2);
-    // // initialize LVGL draw buffers
-    // lv_disp_draw_buf_init(&disp_buf, buf1, buf2, buffer_size); // MSGBX_LCD_H_RES * 100
-    
-    /*20250128 LVGL9.2 doesn't use is schema*/
-    // ESP_LOGI(TAG, "Register display driver to LVGL");
-    // lv_disp_drv_init(&disp_drv);
-    // disp_drv.hor_res = MSGBX_LCD_H_RES;
-    // disp_drv.ver_res = MSGBX_LCD_V_RES;
-    // disp_drv.flush_cb = lvgl_flush_cb;
-    // disp_drv.draw_buf = &disp_buf;
-    // disp_drv.user_data = display_handle;
-    // lv_disp_t *disp = lv_disp_drv_register(&disp_drv);
-    // disp_drv.full_refresh = true; // the full_refresh mode can maintain the synchronization between the two frame buffers
 
     ESP_LOGI(TAG, "Install LVGL tick timer");
     // Tick Interface for LVGL using esp_timer to generate 2ms periodic event
@@ -406,7 +315,7 @@ static void disp_init(void)
                     .callback = &lvgl_tick,
                     .name = "lvgl_tick",
                     .skip_unhandled_events = true};
-    //esp_timer_handle_t lvgl_tick_timer;
+    
     ESP_ERROR_CHECK(esp_timer_create(&lvgl_tick_timer_args, &lvgl_tick_timer));
     /*Delete the Default display refresh timer; 
     Only when some other process/task in your program is going to do this for you*/
@@ -416,6 +325,7 @@ static void disp_init(void)
     whenever you want to refresh the dirty areas */
     
 /*in this project this will fire 10 times a second, mainly to keep the display 'touch' working*/
+/* Will start timer later, after everything is fully configured */
 //    ESP_ERROR_CHECK(esp_timer_start_periodic(lvgl_tick_timer, LV_TICK_PERIOD_MS * 1000)); // here time is in micro seconds
 }
 
@@ -441,7 +351,7 @@ void disp_disable_update(void)
  *'lv_display_flush_ready()' has to be called when it's finished.*/
 static void disp_flush(lv_display_t * disp_drv, const lv_area_t * area, uint8_t * px_map)
 {
-    /*JMH Note: this routine does NOT use 'disp_drv' (2 buffer callback)*/
+    /*JMH Note: this routine does NOT use 'disp_drv' */
 	//esp_lcd_panel_handle_t display_handle = display_handle// (esp_lcd_panel_handle_t) disp_drv;//
     if(disp_flush_enabled) {
 	const int offsetx1 = area->x1;
@@ -485,7 +395,7 @@ static bool lvgl_vsync_event(esp_lcd_panel_handle_t panel, const esp_lcd_rgb_pan
 	return high_task_awoken == pdTRUE;
 }
 
-/*Will be called periodically by the LVGL timer, to read the touchpad*/
+/* Called periodically by the LVGL timer, to read the touchpad */
 static void touchpad_read_cb(lv_indev_t * indev_drv, lv_indev_data_t * data)
 {   /*LVGL9*/
     static int32_t last_x = 0;
@@ -498,7 +408,6 @@ static void touchpad_read_cb(lv_indev_t * indev_drv, lv_indev_data_t * data)
     tp->read_data(tp);
     /*Test & Save the pressed coordinates and the state*/
     bool touchpad_pressed = esp_lcd_touch_get_coordinates(tp, touchpad_x, touchpad_y, NULL, &touchpad_cnt, 1);
-    //if(touchpad_is_pressed()) {
     //if(touchpad_pressed) printf("touchpad_read_cb: touchpad_cnt: %d\n", touchpad_cnt);
     if(touchpad_pressed && touchpad_cnt > 0)
     {
@@ -517,21 +426,6 @@ static void touchpad_read_cb(lv_indev_t * indev_drv, lv_indev_data_t * data)
     data->point.y = last_y;
 }
 
-/*Return true is the touchpad is pressed*/
-// static bool touchpad_is_pressed(void)
-// {
-//     /*Your code comes here*/
-//     return false;
-// }
-
-/*Get the x and y coordinates if the touchpad is pressed*/
-// static void touchpad_get_xy(int32_t * x, int32_t * y)
-// {
-//     /*Your code comes here*/
-
-//     (*x) = 0;
-//     (*y) = 0;
-// }
 
 bool lvgl_port_lock(int timeout_ms)
 {
@@ -550,7 +444,7 @@ bool lvgl_port_unlock(void)
     return true;
 }
 
-/*MAIN LVGL Loop */
+/* MAIN LVGL Loop/Task */
 static void lvgl_port_task(void *arg)
 {
     ESP_LOGD(TAG, "Starting LVGL task");

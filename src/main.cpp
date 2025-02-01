@@ -31,16 +31,13 @@
 #include "freertos/task.h"
 #include "freertos/semphr.h"
 #include "freertos/queue.h"
-//#include "lv_demo_widgets.h"
+
 #include "lv_example_widgets.h"  //needed to run button code
 #include "demos/widgets/lv_demo_widgets.h"
+#include "demos/benchmark/lv_demo_benchmark.h"
+#include "demos/stress/lv_demo_stress.h"
+//#include "lv_demo_widgets.h"
 
-
-// esp_err_t i2c_acquire_bus_handle(int port_num, void *i2c_new_bus, int mode)
-// {
-//     printf("i2c_acquire_bus info: port_num %d", port_num);
-//     return ESP_OK;   
-// }
 extern "C"
 {
   void app_main();
@@ -52,8 +49,7 @@ void app_main()
     vTaskDelay(pdMS_TO_TICKS(3000));
     printf("LVGL porting example start\n");
     //printf("Initialize panel device\n");
-    //ESP_Panel *panel = new ESP_Panel();
-    //panel->init();
+    
 #if LVGL_PORT_AVOID_TEAR
     // When avoid tearing function is enabled, configure the RGB bus according to the LVGL configuration
     ESP_PanelBus_RGB *rgb_bus = static_cast<ESP_PanelBus_RGB *>(panel->getLcd()->getBus());
@@ -89,14 +85,14 @@ void app_main()
      * again, uncomment 1 demo at a time
      */
     lv_demo_widgets();// demo 1
-    //lv_demo_benchmark();
-    // lv_demo_music();
-    // lv_demo_stress();
-    //Serial.println(title + " end");
+    // lv_demo_benchmark();// demo 2 ; set LV_USE_DEMO_BENCHMARK & LV_USE_SYSMON lv_conf.h to '1'
+    // lv_demo_music(); // not yet tested/enabled
+    // lv_demo_stress();// demo 3
+    
     printf("\napp_main: Create UI Complete\n\n");
     /* Release the mutex */
     lvgl_port_unlock();
-    int cnt = 0;
+    
     while(0)
     {   
         printf("IDLE loop\n");
