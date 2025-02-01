@@ -77,6 +77,14 @@ void app_main()
      * source codes: https://github.com/lvgl/lvgl/tree/e7f88efa5853128bf871dde335c0ca8da9eb7731/examples
      */
     // lv_example_button_1();
+    /**
+     * Example 3 - create text space + a numeric keypad for entry
+     * */
+    // lv_example_textarea_1();
+    /**
+     * Example 4 - similar example 3, but larger keypad for entry
+     * */
+    // lv_example_textarea_3();
 
     /**
      * Or try out a demo.
