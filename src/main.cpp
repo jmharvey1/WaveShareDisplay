@@ -23,20 +23,19 @@
  *
  */
 
-#include "ESP_Panel_Library.h"
+#include <memory> //needed for call/ref to std::string 
 #include "lvgl.h"
 #include "lv_conf.h"
-#include "lv_port_disp.h"//#include <lvgl_port_v8.h>
+#include "lv_port_disp.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "freertos/semphr.h"
 #include "freertos/queue.h"
-
-#include "lv_example_widgets.h"  //needed to run button code
+#include "examples/widgets/lv_example_widgets.h"  //needed to run button code
 #include "demos/widgets/lv_demo_widgets.h"
 #include "demos/benchmark/lv_demo_benchmark.h"
 #include "demos/stress/lv_demo_stress.h"
-//#include "lv_demo_widgets.h"
+
 
 extern "C"
 {
@@ -77,7 +76,7 @@ void app_main()
      * See all the examples online: https://docs.lvgl.io/master/examples.html
      * source codes: https://github.com/lvgl/lvgl/tree/e7f88efa5853128bf871dde335c0ca8da9eb7731/examples
      */
-    //lv_example_btn_1();
+    // lv_example_button_1();
 
     /**
      * Or try out a demo.

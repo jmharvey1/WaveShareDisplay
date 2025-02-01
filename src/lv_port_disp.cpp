@@ -3,8 +3,7 @@
  *
  */
 
-/*Copy this file as "lv_port_disp.c" and set this value to "1" to enable content*/
-//#if 1
+/*20250131 JMH(KW4KD)*/
 
 /*********************
  *      INCLUDES
@@ -14,7 +13,6 @@
 #include "esp_timer.h"
 #include "esp_lcd_panel_ops.h"
 #include "esp_lcd_panel_rgb.h"
-//#include "driver/i2c_master.h" //added for waveshare touch support
 #include "touch/base/esp_lcd_touch_gt911.h" //added for waveshare touch support
 #include "touch/base/esp_lcd_touch.h"
 #include "driver/gpio.h"

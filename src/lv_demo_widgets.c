@@ -6,7 +6,8 @@
 /*********************
  *      INCLUDES
  *********************/
-#include "lv_demo_widgets.h"
+//#include "lv_demo_widgets.h"
+#include "demos/widgets/lv_demo_widgets.h"
 #include "lvgl_private.h"
 
 #if LV_USE_DEMO_WIDGETS
