@@ -86,6 +86,9 @@ void app_main()
      * */
     // lv_example_textarea_3();
 
+
+    // lv_example_win_1();// added to test/show how to add color to background
+    
     /**
      * Or try out a demo.
      * Don't forget to uncomment header and enable the demos in `lv_conf.h`. E.g. `LV_USE_DEMO_WIDGETS`
